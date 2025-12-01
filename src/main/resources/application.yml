@@ -1,0 +1,83 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/shoppingmalldb
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: none # 스키마 유효성 검사
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+
+  # ==================================
+  # 3. Spring Security 설정
+  # (global.config.SecurityConfig 관련)
+  # ==================================
+  # 🚨 주의: 아래 인메모리 사용자는 개발 및 테스트용입니다.
+  # 실제 운영 환경에서는 데이터베이스 기반 인증 또는 OAuth2를 사용해야 합니다.
+#  security:
+#    user:
+#      name: admin
+#      password: '{noop}securepassword123'
+#      roles: ADMIN, USER
+#
+#  # ==================================
+#  # 4. Spring Mail 설정
+#  # (promotion.EmailService 관련)
+#  # ==================================
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: ${MAIL_USERNAME}
+#    password: ${MAIL_PASSWORD}
+#    default-encoding: UTF-8
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+#            required: true
+#          timeout: 5000
+#          connection-timeout: 5000
+#
+#  # ==================================
+#  # 5. Spring Batch 설정
+#  # (domain.analytics.RfmBatchService 관련)
+#  # ==================================
+#  batch:
+#    job:
+#      enabled: true
+#    jdbc:
+#      initialize-schema: always
+#
+#  # ==================================
+#  # 6. OpenAPI (Swagger) 설정
+#  # (global.config.SwaggerConfig 관련)
+#  # ==================================
+#  springdoc:
+#    swagger-ui:
+#      path: /swagger-ui.html
+#    api-docs:
+#      path: /v1/api-docs
+#
+## ==================================
+## 7. 로깅 설정
+## ==================================
+#logging:
+#  level:
+#    root: INFO
+#    com.twog.shopping: DEBUG
+#    org.hibernate.orm.jdbc.bind: TRACE
+#    org.hibernate.SQL: DEBUG
