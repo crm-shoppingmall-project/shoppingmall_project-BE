@@ -11,6 +11,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @ToString
+@Builder
 public class MemberProfile {
 
     @Id
@@ -28,8 +29,8 @@ public class MemberProfile {
     @Column(name = "profile_detail_address")
     private String profileDetailAddress;
 
-    @Column(name = "profile_preffered")
-    private String profilePreffered;
+    @Column(name = "profile_preferred")
+    private String profilePreferred;
 
     @Column(name = "profile_interests")
     private String profileInterests;

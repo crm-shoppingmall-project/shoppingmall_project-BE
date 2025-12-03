@@ -20,12 +20,12 @@ public class MemberGradeHistory{
     private Long historyId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @Column(name = "member_id")
-    private Member memberId;
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @Column(name = "grade_code")
-    private MemberGrade gradeCode;
+    @JoinColumn(name = "grade_code")
+    private MemberGrade memberGrade;
 
     @Column(name = "history_before")
     private String historyBefore;

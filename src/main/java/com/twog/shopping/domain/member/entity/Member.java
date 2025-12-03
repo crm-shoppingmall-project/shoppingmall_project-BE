@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString
 @Builder
-
 public class Member {
 
     @Id
@@ -24,13 +23,13 @@ public class Member {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "grade_code",nullable = false)
-    private MemberGrade gradeCode;
+    private MemberGrade memberGrade;
 
     @Column(name = "member_name",nullable = false)
     private String memberName;
 
     @Column(name = "member_gender",nullable = false, length = 1)
-    private String memberGender;
+    private char memberGender;
 
     @Column(name = "member_phone",nullable = false , length = 11)
     private String memberPhone;
@@ -46,48 +45,23 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_status",nullable = false)
-    private MemberStatus memberStatus;
+    private MemberStatus memberStatus = MemberStatus.ACTIVE;
 
     @Column(name = "member_created",nullable = false)
-    private LocalDateTime memberCreated;
+    private LocalDateTime memberCreated = LocalDateTime.now();
 
     @Column(name = "member_updated",nullable = false)
-    private LocalDateTime memberUpdated;
+    private LocalDateTime memberUpdated = LocalDateTime.now();
 
     @Column(name = "member_with_drawn")
     private LocalDateTime memberWithDrawn;
 
     @Column(name = "member_last_at",nullable = false)
-    private LocalDateTime memberLastAt;
-
-    @PrePersist
-    public void onCreate(){
-        LocalDateTime now = LocalDateTime.now();
-
-         if(memberCreated == null){
-             this.memberCreated = now;
-         }
-
-        if(memberUpdated == null){
-            this.memberUpdated = now;
-        }
-
-        if(memberLastAt == null){
-            this.memberLastAt = now;
-        }
-
-        if(memberStatus == null){
-            this.memberStatus = MemberStatus.active;
-        }
-
-
-    }
+    private LocalDateTime memberLastAt = LocalDateTime.now();
 
     @PreUpdate
     public void onUpdate(){
         this.memberUpdated = LocalDateTime.now();
 
     }
-
-
 }
