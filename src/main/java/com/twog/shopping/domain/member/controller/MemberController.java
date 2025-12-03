@@ -1,8 +1,8 @@
 package com.twog.shopping.domain.member.controller;
 
-import com.twog.shopping.domain.member.dto.request.LoginRequest;
-import com.twog.shopping.domain.member.dto.request.SignUpRequest;
-import com.twog.shopping.domain.member.service.MemberService;
+import com.twog.shopping.domain.member.dto.request.LoginRequestDTO;
+import com.twog.shopping.domain.member.dto.request.SignUpRequestDTO;
+import com.twog.shopping.domain.member.service.DetailsUser;
 import com.twog.shopping.global.common.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,17 +16,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/members")
 public class MemberController {
 
-    private final MemberService memberService;
+    private final DetailsUser detailsUser;
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<?>> signUp(@RequestBody SignUpRequest signUpRequest) {
-        memberService.signUp(signUpRequest);
+    public ResponseEntity<ApiResponse<?>> signUp(@RequestBody SignUpRequestDTO signUpRequestDTO) {
+        detailsUser.signUp(signUpRequestDTO);
         return ResponseEntity.ok(ApiResponse.of("회원가입이 완료되었습니다."));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequest loginRequest) {
-        String token = memberService.login(loginRequest);
+    public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequestDTO loginRequestDTO) {
+        String token = detailsUser.login(loginRequestDTO);
         return ResponseEntity.ok(ApiResponse.of("로그인이 완료되었습니다.", token));
     }
 }

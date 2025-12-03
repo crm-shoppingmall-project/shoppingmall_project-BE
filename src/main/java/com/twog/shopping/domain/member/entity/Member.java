@@ -1,5 +1,6 @@
 package com.twog.shopping.domain.member.entity;
 
+import com.twog.shopping.global.common.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -59,9 +60,30 @@ public class Member {
     @Column(name = "member_last_at",nullable = false)
     private LocalDateTime memberLastAt = LocalDateTime.now();
 
+    @Column(name = "member_role",nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    private UserRole memberRole;
+
+    @PrePersist
+    public void onCreate(){
+        if(this.memberCreated == null){
+            this.memberCreated = LocalDateTime.now();
+        }
+        if(this.memberUpdated == null){
+            this.memberUpdated = this.memberCreated;
+        }
+
+        if(this.memberLastAt == null){
+            this.memberLastAt = LocalDateTime.now();
+        }
+    }
+
+
     @PreUpdate
     public void onUpdate(){
         this.memberUpdated = LocalDateTime.now();
 
     }
+
+
 }
