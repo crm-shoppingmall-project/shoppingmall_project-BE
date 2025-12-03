@@ -14,7 +14,8 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED) 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "CS_ticket")
 public class CsTicket {
   
 	@Id
