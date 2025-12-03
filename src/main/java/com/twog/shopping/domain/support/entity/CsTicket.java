@@ -3,6 +3,7 @@ package com.twog.shopping.domain.support.entity;
 import java.time.LocalDateTime;
 
 import com.twog.shopping.domain.member.entity.Member;
+import com.twog.shopping.domain.support.dto.CsTicketRequest;
 
 import jakarta.persistence.*;
 
@@ -47,18 +48,15 @@ public class CsTicket {
 
 	// ==== 생성 메서드 ==== //
 	public static CsTicket create(
-			Member member,
-			TicketChannel csTicketChannel,
-			String csTicketCategory,
-			String csTicketTitle,
-			String csTicketContent
+			CsTicketRequest req,
+			Member member
 	) {
 			CsTicket ticket = new CsTicket();
 			ticket.member = member;
-			ticket.csTicketChannel = csTicketChannel;
-			ticket.csTicketCategory = csTicketCategory;
-			ticket.csTicketTitle = csTicketTitle;
-			ticket.csTicketContent = csTicketContent;
+			ticket.csTicketChannel = req.csTicketChannel();
+			ticket.csTicketCategory = req.csTicketCategory();
+			ticket.csTicketTitle = req.csTicketTitle();
+			ticket.csTicketContent = req.csTicketContent();
 			ticket.csTicketStatus = TicketStatus.OPEN;
 			ticket.csTicketCreatedAt = LocalDateTime.now();
 			return ticket;

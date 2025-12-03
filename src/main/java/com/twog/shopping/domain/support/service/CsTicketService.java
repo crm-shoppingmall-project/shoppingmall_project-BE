@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.twog.shopping.domain.member.entity.Member;
+import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.domain.support.dto.CsTicketRequest;
 import com.twog.shopping.domain.support.dto.CsTicketResponse;
 import com.twog.shopping.domain.support.entity.CsTicket;
@@ -15,22 +16,19 @@ import com.twog.shopping.domain.support.repository.CsTicketRepository;
 public class CsTicketService {
 
   private final CsTicketRepository csTicketRepository;
+  private final MemberRepository memberRepository;
 
-  public CsTicketService(CsTicketRepository csTicketRepository) {
+  public CsTicketService(CsTicketRepository csTicketRepository, MemberRepository memberRepository) {
     this.csTicketRepository = csTicketRepository;
+    this.memberRepository = memberRepository;
   }
 
   @Transactional
-  public CsTicketResponse createTicket(CsTicketRequest req, Member member) {
+  public CsTicketResponse createTicket(CsTicketRequest req) {
+    Member member = memberRepository.findById(req.memberId())
+        .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
 
-    CsTicket ticket = CsTicket.create(
-      member,
-      req.csTicketChannel(),
-      req.csTicketCategory(),
-      req.csTicketTitle(),
-      req.csTicketContent()
-    );
-
+    CsTicket ticket = CsTicket.create(req, member);
     csTicketRepository.save(ticket);
 
     return CsTicketResponse.from(ticket);
@@ -40,5 +38,12 @@ public class CsTicketService {
   public Page<CsTicketResponse> getMyTickets(Long memberId, Pageable pageable) {
     Page<CsTicket> tickets = csTicketRepository.findByMember_MemberId(memberId, pageable);
     return tickets.map(CsTicketResponse::from);
+  }
+
+  @Transactional(readOnly = true)
+  public CsTicketResponse getTicket(Long csTicketId) {
+    CsTicket ticket = csTicketRepository.findById(csTicketId)
+        .orElseThrow(() -> new RuntimeException("문의 내역을 찾을 수 없습니다."));
+    return CsTicketResponse.from(ticket);
   }
 }
