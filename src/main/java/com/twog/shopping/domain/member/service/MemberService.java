@@ -1,14 +1,18 @@
 package com.twog.shopping.domain.member.service;
 
+import com.twog.shopping.domain.member.dto.TokenDTO;
+import com.twog.shopping.domain.member.dto.request.LoginRequestDTO;
 import com.twog.shopping.domain.member.dto.request.SignUpRequestDTO;
 import com.twog.shopping.domain.member.dto.response.MemberResponseDTO;
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.entity.MemberProfile;
 import com.twog.shopping.domain.member.repository.MemberProfileRepository;
 import com.twog.shopping.domain.member.repository.MemberRepository;
-import com.twog.shopping.global.common.UserRole;
+import com.twog.shopping.domain.member.entity.UserRole;
+import com.twog.shopping.global.common.utils.TokenUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -20,11 +24,13 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final MemberProfileRepository memberProfileRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public MemberService(MemberRepository memberRepository, BCryptPasswordEncoder bCryptPasswordEncoder, MemberProfileRepository memberProfileRepository ) {
+    public MemberService(MemberRepository memberRepository, BCryptPasswordEncoder bCryptPasswordEncoder, MemberProfileRepository memberProfileRepository, PasswordEncoder passwordEncoder) {
         this.memberRepository = memberRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.memberProfileRepository = memberProfileRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -80,6 +86,26 @@ public class MemberService {
                 .build();
 
     }
+
+
+
+    // 로그인
+    public TokenDTO login(LoginRequestDTO loginRequestDTO){
+
+        Member member = memberRepository.findByMemberEmail(loginRequestDTO.getMemberEmail())
+                .orElseThrow(()-> new RuntimeException("존재하지 않는 이메일 입니다."));
+
+        if(!passwordEncoder.matches(loginRequestDTO.getMemberPwd(),member.getMemberPwd())){
+            throw new RuntimeException("비밀번호가 일치하지 않습니다");
+        }
+
+        String token = TokenUtils.generateJwtToken(member);
+
+        Long expireTime = System.currentTimeMillis() + TokenUtils.getTokenValidateTime();
+
+        return new TokenDTO("Bearer", token, expireTime);
+    }
+
 
     public Optional<Member> findByEmail(String email) {
         return memberRepository.findByMemberEmail(email);

@@ -1,7 +1,7 @@
 package com.twog.shopping.global.auth.interceptor;
 
-import com.ohgiraffers.jwtsecurity.common.AuthConstants;
-import com.ohgiraffers.jwtsecurity.common.utils.TokenUtils;
+import com.twog.shopping.global.common.AuthConstants;
+import com.twog.shopping.global.common.utils.TokenUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;

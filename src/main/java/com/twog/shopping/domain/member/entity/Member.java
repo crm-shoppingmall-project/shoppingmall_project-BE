@@ -1,6 +1,5 @@
 package com.twog.shopping.domain.member.entity;
 
-import com.twog.shopping.global.common.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 

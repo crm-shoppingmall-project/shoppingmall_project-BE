@@ -1,9 +1,9 @@
 package com.twog.shopping.global.common.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import tools.jackson.databind.ObjectMapper;
+
 /*
  * Java 객체를 JSON 객체로 변환하는 유틸 클래스
  *
@@ -27,7 +27,7 @@ public class ConvertUtil {
             // 2. JSON 문자열 -> JSON.simple의 JSONObject로 파싱
             return parser.parse(JsonString);
 
-        } catch (JsonProcessingException | ParseException e) {
+        } catch ( ParseException e) {
             // 변환 중 에러가 발생하면 런타임 예외로 던져서 흐름을 중단시킴
             throw new RuntimeException("JSON 변환 실패", e);
         }

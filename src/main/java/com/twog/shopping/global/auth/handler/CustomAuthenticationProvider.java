@@ -2,6 +2,7 @@ package com.twog.shopping.global.auth.handler;
 
 import com.twog.shopping.domain.member.service.DetailsService;
 import com.twog.shopping.domain.member.service.DetailsUser;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -9,8 +10,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
 
 // 비밀번호 매칭을 해서 토큰을 반환해 주는 역할
+@RequiredArgsConstructor
+@Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     @Autowired

@@ -1,15 +1,20 @@
 package com.twog.shopping.global.auth.filter;
 
 
-
 import com.twog.shopping.domain.member.entity.Member;
+import com.twog.shopping.domain.member.entity.UserRole;
 import com.twog.shopping.domain.member.service.DetailsUser;
 import com.twog.shopping.global.common.AuthConstants;
 import com.twog.shopping.global.common.utils.TokenUtils;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.json.simple.JSONObject;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /* 클라이언트가 전송한 JWT 토큰 검증하는 역할 */
+
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
     public JwtAuthorizationFilter(AuthenticationManager authenticationManager) {
@@ -33,49 +39,58 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
 
-        // 들어오는 요청 중 인증은 했지만 권한이 필요없는 리소스 목록을 만들어서
-        List<String> roleLessList = Arrays.asList("/signup");
 
-        // 권한이 필요 없는 애면 다음 내용 동작하게 한다.
-        if (roleLessList.contains((request.getRequestURI()))) {
+        // 1. 헤더에서 토큰 꺼내기
+        String header = request.getHeader(AuthConstants.AUTH_HEADER);
+
+        // [핵심 수정] 토큰이 없거나, Bearer 타입이 아니면? -> 그냥 통과시킨다.
+        // 이유: 로그인(/login)이나 회원가입(/signup) 요청은 토큰이 없으므로 여기서 막으면 안 됩니다.
+        // 여기서 통과되어도, WebSecurityConfig에서 인증이 필요한 페이지라면 알아서 막아줍니다.
+        if (header == null || !header.startsWith(AuthConstants.TOKEN_TYPE)) {
             chain.doFilter(request, response);
             return;
         }
 
-        // 요청이 들어오면 Authorization 헤더에서 토큰 추출
-        String header = request.getHeader(AuthConstants.AUTH_HEADER);
 
         try {
-            if (header != null && !header.equalsIgnoreCase("")) {
-                String token = TokenUtils.splitHeader(header);
-
-                // 토큰의 유효성을 검사
-                if (TokenUtils.isValidToken(token)) {
-                    // 복호화
-                    Claims claims = TokenUtils.getClaimsFromToken(token);
+            // 2. 토큰이 있다면 유효성 검사 시작
+            String token = TokenUtils.splitHeader(header);
 
 
-                    DetailsUser authentication = new DetailsUser();
-                    Member member = new Member();
-                    user.setUserName(claims.get("userName").toString());
-                    user.setRole(UserRole.valueOf(claims.get("Role").toString()));
-                    authentication.setUser(user);
-                    // 사용자의 ID, 권한 등의 정보를 UserDetails(DetailsUser)로 감싸
-                    // UsernamePasswordAuthenticationToken을 생성
-                    AbstractAuthenticationToken authenticationToken
-                            = UsernamePasswordAuthenticationToken
-                            .authenticated(authentication, token, authentication.getAuthorities());
-                    authenticationToken.setDetails(new WebAuthenticationDetails(request));
+            if (TokenUtils.isValidToken(token)) {
+                Claims claims = TokenUtils.getClaimsFromToken(token);
 
-                    // SecurityContextHolder에 인증 정보를 저장하여 이후 인증이 필요한 요청에서 사용 가능하게 함
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                    chain.doFilter(request, response);
-                } else {
-                    throw new RuntimeException("token이 유효하지 않습니다.");
-                }
+
+                // 1) JWT에 넣었던 클레임에서 값 꺼내기
+                String email = claims.get("email", String.class);
+                String role = claims.get("role", String.class);   // 예: "USER", "ADMIN"
+
+                Member member = Member.builder()
+                        .memberEmail(email)
+                        .memberRole(UserRole.valueOf(role))  // enum 변환
+                        .build();
+
+
+                DetailsUser principal = new DetailsUser(member);
+
+                AbstractAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(
+                                principal,          // principal
+                                null,               // credentials (보통 null)
+                                principal.getAuthorities()  // 권한
+                        );
+
+                authenticationToken.setDetails(new WebAuthenticationDetails(request));
+
+                // 5) SecurityContext에 저장
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+                chain.doFilter(request, response);
+
             } else {
-                throw new RuntimeException("token이 존재하지 않습니다.");
+                throw new RuntimeException("token이 유효하지 않습니다.");
             }
+
         } catch (Exception e) {
             response.setContentType("application/json");
             PrintWriter printWriter = response.getWriter();

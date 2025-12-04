@@ -1,14 +1,12 @@
 package com.twog.shopping.global.config;
 
-package com.ohgiraffers.jwtsecurity.auth.config;
 
-import com.ohgiraffers.jwtsecurity.auth.filter.HeaderFilter;
-import com.ohgiraffers.jwtsecurity.auth.interceptor.JwtTokenInterceptor;
+import com.twog.shopping.global.auth.filter.HeaderFilter;
+import com.twog.shopping.global.auth.interceptor.JwtTokenInterceptor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 

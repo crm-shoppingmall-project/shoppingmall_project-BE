@@ -3,10 +3,14 @@ server:
 
 spring:
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/shoppingmalldb
+    driver-class-name: ${DB_DRIVER}
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+
+  config:
+    import: optional:file:.env[.properties]
+
 
   jpa:
     hibernate:

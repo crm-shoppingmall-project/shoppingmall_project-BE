@@ -1,10 +1,11 @@
 package com.twog.shopping.global.auth.handler;
 
-import com.ohgiraffers.jwtsecurity.auth.model.DetailsUser;
-import com.ohgiraffers.jwtsecurity.common.AuthConstants;
-import com.ohgiraffers.jwtsecurity.common.utils.ConvertUtil;
-import com.ohgiraffers.jwtsecurity.common.utils.TokenUtils;
-import com.ohgiraffers.jwtsecurity.user.entity.User;
+
+import com.twog.shopping.domain.member.entity.Member;
+import com.twog.shopping.domain.member.service.DetailsUser;
+import com.twog.shopping.global.common.AuthConstants;
+import com.twog.shopping.global.common.utils.ConvertUtil;
+import com.twog.shopping.global.common.utils.TokenUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,22 +28,22 @@ public class CustomAuthSuccessHandler extends SavedRequestAwareAuthenticationSuc
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
 
         // 1. 요청 사용자 정보 가져오기
-        User user = ((DetailsUser) authentication.getPrincipal()).getUser();
+        Member member = ((DetailsUser) authentication.getPrincipal()).getMember();
 
         // 2. User 엔티티를 JSON 객체로 변환
-        JSONObject jsonValue = (JSONObject) ConvertUtil.convertObjectToJsonObject(user);
+        JSONObject jsonValue = (JSONObject) ConvertUtil.convertObjectToJsonObject(member);
 
         // 3. 응답 데이터 구성
         HashMap<String, Object> responseMap = new HashMap<>();
 
         JSONObject jsonObject;
-        if ("N".equals(user.getState())) {
+        if ("N".equals(member.getMemberStatus())) {
             // 휴면 계정인 경우 토큰을 발급하지 않고 메시지만 전달
             responseMap.put("userInfo", jsonValue);
             responseMap.put("message", "휴면 상태의 계정입니다.");
         } else {
             // 정상 계정인 경우 JWT 토큰 생성
-            String token = TokenUtils.generateJwtToken(user);
+            String token = TokenUtils.generateJwtToken(member);
             responseMap.put("userInfo", jsonValue);
             responseMap.put("message", "로그인 성공입니다.");
 

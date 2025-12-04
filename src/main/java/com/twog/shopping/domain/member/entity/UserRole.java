@@ -1,4 +1,4 @@
-package com.twog.shopping.global.common;
+package com.twog.shopping.domain.member.entity;
 
 
 public enum UserRole {

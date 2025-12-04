@@ -1,7 +1,8 @@
 package com.twog.shopping.global.common.utils;
 
-import com.ohgiraffers.jwtsecurity.user.entity.User;
+import com.twog.shopping.domain.member.entity.Member;
 import io.jsonwebtoken.*;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,7 @@ import java.util.Map;
 public class TokenUtils {
 
     private static String jwtSecretKey;
+    @Getter
     private static Long tokenValidateTime;
 
     @Value("${jwt.key}")
@@ -103,16 +105,16 @@ public class TokenUtils {
     /**
      * description. 토큰을 생성하는 메소드
      *
-     * @param user
+     * @param member
      * @return token (String)
      */
-    public static String generateJwtToken(User user) {
+    public static String generateJwtToken(Member member) {
         Date expireTime = new Date(System.currentTimeMillis() + tokenValidateTime);
 
         JwtBuilder builder = Jwts.builder()
                 .setHeader(createHeader())      // 헤더 세팅
-                .setClaims(createClaims(user))  // user 데이터를 넣는 payload 세팅
-                .setSubject("ohgiraffers token : " + user.getUserNo())  // 토큰 제목 설정
+                .setClaims(createClaims(member))  // user 데이터를 넣는 payload 세팅
+                .setSubject("ohgiraffers token : " + member.getMemberId())  // 토큰 제목 설정
                 .signWith(SignatureAlgorithm.HS256, createSignature())  // 토큰 생성을 위해 암호화 설정
                 .setExpiration(expireTime);
 
@@ -138,14 +140,14 @@ public class TokenUtils {
     /**
      * description. 사용자 정보를 기반으로 claim을 생성하는 메소드
      *
-     * @param user (사용자 정보)
+     * @param member (사용자 정보)
      * @return Map<String, Object> (claims 정보)
      */
-    private static Map<String, Object> createClaims(User user) {
+    private static Map<String, Object> createClaims(Member member) {
         Map<String, Object> claims = new HashMap<>();
 
-        claims.put("userName", user.getUserName()); // 이름과
-        claims.put("Role", user.getRole());         // 권한 정보로 claim 생성
+        claims.put("email", member.getMemberEmail()); // 이름과
+        claims.put("Role", member.getMemberRole());         // 권한 정보로 claim 생성
 
         return claims;
     }

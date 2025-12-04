@@ -1,13 +1,12 @@
 package com.twog.shopping.global.config;
 
-package com.ohgiraffers.jwtsecurity.auth.config;
-
-import com.ohgiraffers.jwtsecurity.auth.filter.CustomAuthenticationFilter;
-import com.ohgiraffers.jwtsecurity.auth.filter.JwtAuthorizationFilter;
-import com.ohgiraffers.jwtsecurity.auth.handler.CustomAuthFailureHandler;
-import com.ohgiraffers.jwtsecurity.auth.handler.CustomAuthSuccessHandler;
-import com.ohgiraffers.jwtsecurity.auth.handler.CustomAuthenticationProvider;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
+import com.twog.shopping.global.auth.filter.CustomAuthenticationFilter;
+import com.twog.shopping.global.auth.filter.JwtAuthorizationFilter;
+import com.twog.shopping.global.auth.handler.CustomAuthFailureHandler;
+import com.twog.shopping.global.auth.handler.CustomAuthSuccessHandler;
+import com.twog.shopping.global.auth.handler.CustomAuthenticationProvider;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -55,27 +54,47 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        // CSRF 비활성화 : 세션이 없기때문에 CSRF 보호 기능을 꺼야함
-        http.csrf(AbstractHttpConfigurer::disable)
 
-                // URL 권한 설정
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-//                        .requestMatchers("/api/v1/user/**").hasAnyRole("USER", "ADMIN")
-//                        .requestMatchers("/api/v1/public/**").permitAll()
-//                        .anyRequest().authenticated()
-//                )
+        http
+                // 1) CSRF 끄기 (JWT 사용)
+                .csrf(AbstractHttpConfigurer::disable)
 
-                // 필터 추가
-                // jwtAuthorizationFilter : 토큰 인증 후 사용자 인증 정보를 세팅해주는 역할
-                .addFilterBefore(jwtAuthorizationFilter(), BasicAuthenticationFilter.class)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // 시큐리티가 제공하는 기본 로그인창 쓰지 않겠다.
-                .formLogin(form -> form.disable())
-                // 시큐리티가 제공하는 기본인증 쓰지 않겠다. -> 우리가 지정해준 인증절차로 처리되게끔
-                .httpBasic(basic -> basic.disable())
-                // customAuthenticationFilter : 로그인 요청 시 토큰을 생성해서 반환
+                // 2) 세션 Stateless
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
+                // 3) URL 권한 설정
+                .authorizeHttpRequests(auth -> auth
+                        // ✅ Swagger & API 문서 완전 개방
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+
+                        // ✅ 로그인/회원가입 개방
+                        .requestMatchers("/api/v1/members/login", "/api/v1/members/signup").permitAll()
+
+                        // 그 외는 인증 필요
+                        .anyRequest().authenticated()
+                )
+
+                // 4) 기본 로그인 폼 / HTTP Basic 완전히 끄기
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+
+                // 5) 인증 실패 시 401만 던지고 리다이렉트 안 하도록 (로그인 페이지 방지)
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        })
+                )
+
+                // 6) JWT 필터들
+                .addFilterBefore(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }
