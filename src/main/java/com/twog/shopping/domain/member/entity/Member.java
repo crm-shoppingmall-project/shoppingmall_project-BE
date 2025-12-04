@@ -45,7 +45,7 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_status",nullable = false)
-    private MemberStatus memberStatus = MemberStatus.ACTIVE;
+    private MemberStatus memberStatus = MemberStatus.active;
 
     @Column(name = "member_created",nullable = false)
     private LocalDateTime memberCreated = LocalDateTime.now();
