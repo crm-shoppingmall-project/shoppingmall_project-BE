@@ -66,14 +66,12 @@ public class WebSecurityConfig {
 
                 // 3) URL 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ Swagger & API 문서 완전 개방
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // ✅ 로그인/회원가입 개방
                         .requestMatchers("/api/v1/members/login", "/api/v1/members/signup").permitAll()
 
                         // 그 외는 인증 필요
