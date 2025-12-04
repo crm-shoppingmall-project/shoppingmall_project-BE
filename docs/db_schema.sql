@@ -1,9 +1,4 @@
-<<<<<<< HEAD
--- 사용 명령어: mysql -u ohgiraffers -p shoppingmalldb < "C:\Users\user\sesac25\shoppingmall\shoppingmall\docs/db_schema.sql"
-=======
--- 사용 명령어: mysql -u ohgiraffers -p shoppingmalldb < "파일폴더/db_schema.sql"
->>>>>>> 6bf08ce25828d91b280446bd6773fbc7e80d2eba
-
+-- 사용 명령어: mysql -u ohgiraffers -p shoppingmalldb < "db_schema.sql"
 -- Schema for shoppingmalldb
 -- Added DROP TABLE IF EXISTS for idempotent script execution.
 -- Foreign key constraints are considered for table drop order.
@@ -151,6 +146,7 @@ CREATE TABLE `Member` (
     `member_updated`   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `member_withdrawn` TIMESTAMP NULL,
     `member_last_at`   TIMESTAMP NOT NULL,
+    `member_role`      ENUM('USER','ADMIN') NOT NULL DEFAULT 'USER',
     PRIMARY KEY (`member_id`)
 );
 
