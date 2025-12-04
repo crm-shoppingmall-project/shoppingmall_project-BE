@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.twog.shopping.domain.support.dto.CsTicketReplyRequest;
+import com.twog.shopping.domain.support.dto.CsTicketReplyResponse;
 import com.twog.shopping.domain.support.dto.CsTicketRequest;
 import com.twog.shopping.domain.support.dto.CsTicketResponse;
 import com.twog.shopping.domain.support.service.CsTicketService;
@@ -45,5 +47,11 @@ public class CsTicketController {
     @GetMapping("/{id}")
     public CsTicketResponse getTicket(@PathVariable Long id) {
         return csTicketService.getTicket(id);
+    }
+
+    @PostMapping("/{id}/replies")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CsTicketReplyResponse createReply(@PathVariable Long id, @RequestBody CsTicketReplyRequest req) {
+        return csTicketService.createReply(id, req);
     }
 }
