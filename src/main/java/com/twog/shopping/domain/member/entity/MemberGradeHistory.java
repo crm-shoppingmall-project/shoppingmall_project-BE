@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "tbl_memberGradeHistory")
+@Table(name = "member_grade_history")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

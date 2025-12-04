@@ -40,6 +40,19 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
 
 
+        String uri = request.getRequestURI();
+
+        // 0. Swagger + 회원가입/로그인 은 토큰 검사 아예 안 함
+        if (uri.startsWith("/swagger-ui")
+                || uri.startsWith("/v3/api-docs")
+                || uri.equals("/swagger-ui.html")
+                || uri.equals("/api/v1/members/signup")
+                || uri.equals("/api/v1/members/login")) {
+
+            chain.doFilter(request, response);
+            return;
+        }
+
         // 1. 헤더에서 토큰 꺼내기
         String header = request.getHeader(AuthConstants.AUTH_HEADER);
 
