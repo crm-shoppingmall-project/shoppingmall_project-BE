@@ -1,4 +1,6 @@
 package com.twog.shopping.domain.payment.entity;
 
-public class Settlement {
+public enum PaymentType {
+    PAYMENT,
+    REFUND
 }
