@@ -2,15 +2,8 @@ server:
   port: 8080
 
 spring:
-  datasource:
-    driver-class-name: ${DB_DRIVER}
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-
-  config:
-    import: optional:file:.env[.properties]
-
+  profiles:
+    active: mysql # mysql 또는 mariadb 로 DB 환경설정 스위칭
 
   jpa:
     hibernate:
