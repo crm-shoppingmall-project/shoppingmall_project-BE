@@ -28,6 +28,7 @@ public class Purchase {
     private PurchaseStatus status;
 
     @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<PurchaseDetail> details = new ArrayList<>();
 
     @Column(name = "purchase_processed")
