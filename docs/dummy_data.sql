@@ -1,10 +1,5 @@
--- 사용 명령어:  mysql -u ohgiraffers -p shoppingmalldb < "파일폴더/dummy_data.sql"
-<<<<<<< HEAD
--- mysql -u ohgiraffers -p shoppingmalldb < "C:\Users\user\sesac25\shoppingmall\shoppingmall\docs/dummy_data.sql"
--- mysql -u ohgiraffers -p shoppingmalldb --default-character-set=utf8mb4 < "C:\Users\user\sesac25\shoppingmall\shoppingmall\docs/dummy_data.sql"
-=======
+-- 사용 명령어:  mysql -u ohgiraffers -p shoppingmalldb < "dummy_data.sql"
 
->>>>>>> 6bf08ce25828d91b280446bd6773fbc7e80d2eba
 -- SQL DUMMY DATA FOR shoppingmalldb
 -- version 2.2
 -- last updated: 2023-10-28
@@ -47,37 +42,37 @@ INSERT INTO `Member_grade` (`grade_code`, `grade_name`, `grade_desc`) VALUES
 
 -- 2. Member: 30 members as requested.
 -- Passwords are set to a placeholder 'hashed_password'.
-INSERT INTO `Member` (`member_id`, `grade_code`, `member_name`, `member_gender`, `member_phone`, `member_birth`, `member_pwd`, `member_email`, `member_status`, `member_created`, `member_updated`, `member_last_at`) VALUES
-(1, 1, '김철수', 'M', '010-1111-0001', '1990-01-15', 'hashed_password', 'user1@example.com', 'active', '2023-01-10 10:00:00', '2023-01-10 10:00:00', '2023-10-27 09:00:00'),
-(2, 2, '이영희', 'F', '010-1111-0002', '1992-05-20', 'hashed_password', 'user2@example.com', 'active', '2023-02-15 11:30:00', '2023-02-15 11:30:00', '2023-10-27 10:00:00'),
-(3, 3, '박민준', 'M', '010-1111-0003', '1988-11-30', 'hashed_password', 'user3@example.com', 'active', '2023-03-20 14:00:00', '2023-03-20 14:00:00', '2023-10-26 18:30:00'),
-(4, 4, '최지우', 'F', '010-1111-0004', '1995-02-25', 'hashed_password', 'user4@example.com', 'active', '2023-04-05 09:00:00', '2023-04-05 09:00:00', '2023-10-27 11:00:00'),
-(5, 1, '정수빈', 'F', '010-1111-0005', '1998-07-12', 'hashed_password', 'user5@example.com', 'active', '2023-05-12 16:45:00', '2023-05-12 16:45:00', '2023-10-25 20:00:00'),
-(6, 2, '윤도현', 'M', '010-1111-0006', '1991-09-01', 'hashed_password', 'user6@example.com', 'active', '2023-06-18 18:00:00', '2023-06-18 18:00:00', '2023-10-27 12:10:00'),
-(7, 1, '강하나', 'F', '010-1111-0007', '1993-04-18', 'hashed_password', 'user7@example.com', 'active', '2023-07-21 20:10:00', '2023-07-21 20:10:00', '2023-10-26 15:00:00'),
-(8, 3, '송중기', 'M', '010-1111-0008', '1985-09-19', 'hashed_password', 'user8@example.com', 'active', '2023-08-01 12:00:00', '2023-08-01 12:00:00', '2023-10-27 13:00:00'),
-(9, 2, '임윤아', 'F', '010-1111-0009', '1990-05-30', 'hashed_password', 'user9@example.com', 'active', '2023-08-15 13:20:00', '2023-08-15 13:20:00', '2023-10-27 14:20:00'),
-(10, 1, '조인성', 'M', '010-1111-0010', '1981-07-28', 'hashed_password', 'user10@example.com', 'active', '2023-09-01 10:00:00', '2023-09-01 10:00:00', '2023-10-27 09:30:00'),
-(11, 1, '한지민', 'F', '010-1111-0011', '1982-11-05', 'hashed_password', 'user11@example.com', 'active', NOW(), NOW(), NOW()),
-(12, 2, '유재석', 'M', '010-1111-0012', '1972-08-14', 'hashed_password', 'user12@example.com', 'active', NOW(), NOW(), NOW()),
-(13, 3, '전지현', 'F', '010-1111-0013', '1981-10-30', 'hashed_password', 'user13@example.com', 'active', NOW(), NOW(), NOW()),
-(14, 1, '이광수', 'M', '010-1111-0014', '1985-07-14', 'hashed_password', 'user14@example.com', 'active', NOW(), NOW(), NOW()),
-(15, 2, '송지효', 'F', '010-1111-0015', '1981-08-15', 'hashed_password', 'user15@example.com', 'active', NOW(), NOW(), NOW()),
-(16, 1, '하동훈', 'M', '010-1111-0016', '1979-08-20', 'hashed_password', 'user16@example.com', 'active', NOW(), NOW(), NOW()),
-(17, 4, '김태희', 'F', '010-1111-0017', '1980-03-29', 'hashed_password', 'user17@example.com', 'active', NOW(), NOW(), NOW()),
-(18, 1, '정우성', 'M', '010-1111-0018', '1973-03-20', 'hashed_password', 'user18@example.com', 'active', NOW(), NOW(), NOW()),
-(19, 2, '이효리', 'F', '010-1111-0019', '1979-05-10', 'hashed_password', 'user19@example.com', 'active', NOW(), NOW(), NOW()),
-(20, 3, '원빈', 'M', '010-1111-0020', '1977-11-10', 'hashed_password', 'user20@example.com', 'active', NOW(), NOW(), NOW()),
-(21, 1, '손예진', 'F', '010-1111-0021', '1982-01-11', 'hashed_password', 'user21@example.com', 'active', NOW(), NOW(), NOW()),
-(22, 2, '현빈', 'M', '010-1111-0022', '1982-09-25', 'hashed_password', 'user22@example.com', 'active', NOW(), NOW(), NOW()),
-(23, 1, '공유', 'M', '010-1111-0023', '1979-07-10', 'hashed_password', 'user23@example.com', 'active', NOW(), NOW(), NOW()),
-(24, 2, '박보검', 'M', '010-1111-0024', '1993-06-16', 'hashed_password', 'user24@example.com', 'active', NOW(), NOW(), NOW()),
-(25, 3, '아이유', 'F', '010-1111-0025', '1993-05-16', 'hashed_password', 'user25@example.com', 'active', NOW(), NOW(), NOW()),
-(26, 1, '수지', 'F', '010-1111-0026', '1994-10-10', 'hashed_password', 'user26@example.com', 'active', NOW(), NOW(), NOW()),
-(27, 2, '차은우', 'M', '010-1111-0027', '1997-03-30', 'hashed_password', 'user27@example.com', 'active', NOW(), NOW(), NOW()),
-(28, 1, '제니', 'F', '010-1111-0028', '1996-01-16', 'hashed_password', 'user28@example.com', 'active', NOW(), NOW(), NOW()),
-(29, 4, '뷔', 'M', '010-1111-0029', '1995-12-30', 'hashed_password', 'user29@example.com', 'active', NOW(), NOW(), NOW()),
-(30, 2, '정국', 'M', '010-1111-0030', '1997-09-01', 'hashed_password', 'user30@example.com', 'active', NOW(), NOW(), NOW());
+INSERT INTO `Member` (`member_id`, `grade_code`, `member_name`, `member_gender`, `member_phone`, `member_birth`, `member_pwd`, `member_email`, `member_status`, `member_role`, `member_created`, `member_updated`, `member_last_at`) VALUES
+(1, 1, '김철수', 'M', '010-1111-0001', '1990-01-15', 'hashed_password', 'user1@example.com', 'active', 'ADMIN', '2023-01-10 10:00:00', '2023-01-10 10:00:00', '2023-10-27 09:00:00'),
+(2, 2, '이영희', 'F', '010-1111-0002', '1992-05-20', 'hashed_password', 'user2@example.com', 'active', 'USER', '2023-02-15 11:30:00', '2023-02-15 11:30:00', '2023-10-27 10:00:00'),
+(3, 3, '박민준', 'M', '010-1111-0003', '1988-11-30', 'hashed_password', 'user3@example.com', 'active', 'USER', '2023-03-20 14:00:00', '2023-03-20 14:00:00', '2023-10-26 18:30:00'),
+(4, 4, '최지우', 'F', '010-1111-0004', '1995-02-25', 'hashed_password', 'user4@example.com', 'active', 'USER', '2023-04-05 09:00:00', '2023-04-05 09:00:00', '2023-10-27 11:00:00'),
+(5, 1, '정수빈', 'F', '010-1111-0005', '1998-07-12', 'hashed_password', 'user5@example.com', 'active', 'USER', '2023-05-12 16:45:00', '2023-05-12 16:45:00', '2023-10-25 20:00:00'),
+(6, 2, '윤도현', 'M', '010-1111-0006', '1991-09-01', 'hashed_password', 'user6@example.com', 'active', 'USER', '2023-06-18 18:00:00', '2023-06-18 18:00:00', '2023-10-27 12:10:00'),
+(7, 1, '강하나', 'F', '010-1111-0007', '1993-04-18', 'hashed_password', 'user7@example.com', 'active', 'USER', '2023-07-21 20:10:00', '2023-07-21 20:10:00', '2023-10-26 15:00:00'),
+(8, 3, '송중기', 'M', '010-1111-0008', '1985-09-19', 'hashed_password', 'user8@example.com', 'active', 'ADMIN', '2023-08-01 12:00:00', '2023-08-01 12:00:00', '2023-10-27 13:00:00'),
+(9, 2, '임윤아', 'F', '010-1111-0009', '1990-05-30', 'hashed_password', 'user9@example.com', 'active', 'USER', '2023-08-15 13:20:00', '2023-08-15 13:20:00', '2023-10-27 14:20:00'),
+(10, 1, '조인성', 'M', '010-1111-0010', '1981-07-28', 'hashed_password', 'user10@example.com', 'active', 'USER', '2023-09-01 10:00:00', '2023-09-01 10:00:00', '2023-10-27 09:30:00'),
+(11, 1, '한지민', 'F', '010-1111-0011', '1982-11-05', 'hashed_password', 'user11@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(12, 2, '유재석', 'M', '010-1111-0012', '1972-08-14', 'hashed_password', 'user12@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(13, 3, '전지현', 'F', '010-1111-0013', '1981-10-30', 'hashed_password', 'user13@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(14, 1, '이광수', 'M', '010-1111-0014', '1985-07-14', 'hashed_password', 'user14@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(15, 2, '송지효', 'F', '010-1111-0015', '1981-08-15', 'hashed_password', 'user15@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(16, 1, '하동훈', 'M', '010-1111-0016', '1979-08-20', 'hashed_password', 'user16@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(17, 4, '김태희', 'F', '010-1111-0017', '1980-03-29', 'hashed_password', 'user17@example.com', 'active', 'ADMIN', NOW(), NOW(), NOW()),
+(18, 1, '정우성', 'M', '010-1111-0018', '1973-03-20', 'hashed_password', 'user18@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(19, 2, '이효리', 'F', '010-1111-0019', '1979-05-10', 'hashed_password', 'user19@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(20, 3, '원빈', 'M', '010-1111-0020', '1977-11-10', 'hashed_password', 'user20@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(21, 1, '손예진', 'F', '010-1111-0021', '1982-01-11', 'hashed_password', 'user21@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(22, 2, '현빈', 'M', '010-1111-0022', '1982-09-25', 'hashed_password', 'user22@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(23, 1, '공유', 'M', '010-1111-0023', '1979-07-10', 'hashed_password', 'user23@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(24, 2, '박보검', 'M', '010-1111-0024', '1993-06-16', 'hashed_password', 'user24@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(25, 3, '아이유', 'F', '010-1111-0025', '1993-05-16', 'hashed_password', 'user25@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(26, 1, '수지', 'F', '010-1111-0026', '1994-10-10', 'hashed_password', 'user26@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(27, 2, '차은우', 'M', '010-1111-0027', '1997-03-30', 'hashed_password', 'user27@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(28, 1, '제니', 'F', '010-1111-0028', '1996-01-16', 'hashed_password', 'user28@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(29, 4, '뷔', 'M', '010-1111-0029', '1995-12-30', 'hashed_password', 'user29@example.com', 'active', 'USER', NOW(), NOW(), NOW()),
+(30, 2, '정국', 'M', '010-1111-0030', '1997-09-01', 'hashed_password', 'user30@example.com', 'active', 'USER', NOW(), NOW(), NOW());
 
 -- 3. Member_profile: Address information for each member.
 -- profile_preferred, profile_interests 컬럼 타입 변경(JSON -> VARCHAR)에 따른 데이터 추가
