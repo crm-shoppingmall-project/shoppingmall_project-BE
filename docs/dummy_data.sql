@@ -1,6 +1,10 @@
 -- 사용 명령어:  mysql -u ohgiraffers -p shoppingmalldb < "파일폴더/dummy_data.sql"
+<<<<<<< HEAD
 -- mysql -u ohgiraffers -p shoppingmalldb < "C:\Users\user\sesac25\shoppingmall\shoppingmall\docs/dummy_data.sql"
 -- mysql -u ohgiraffers -p shoppingmalldb --default-character-set=utf8mb4 < "C:\Users\user\sesac25\shoppingmall\shoppingmall\docs/dummy_data.sql"
+=======
+
+>>>>>>> 6bf08ce25828d91b280446bd6773fbc7e80d2eba
 -- SQL DUMMY DATA FOR shoppingmalldb
 -- version 2.2
 -- last updated: 2023-10-28
