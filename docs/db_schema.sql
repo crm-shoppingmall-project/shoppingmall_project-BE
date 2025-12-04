@@ -171,8 +171,8 @@ CREATE TABLE `Member_profile` (
     `member_id`             BIGINT NOT NULL,
     `profile_address`       VARCHAR(200) NOT NULL,
     `profile_detail_address` VARCHAR(200) NOT NULL,
-    `profile_preferred`     JSON NULL,
-    `profile_interests`     JSON NULL,
+    `profile_preferred`     VARCHAR(200) NULL,
+    `profile_interests`     VARCHAR(200) NULL,
     PRIMARY KEY (`profile_seq`)
 );
 

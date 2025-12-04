@@ -75,8 +75,9 @@ INSERT INTO `Member` (`member_id`, `grade_code`, `member_name`, `member_gender`,
 (30, 2, '정국', 'M', '010-1111-0030', '1997-09-01', 'hashed_password', 'user30@example.com', 'active', NOW(), NOW(), NOW());
 
 -- 3. Member_profile: Address information for each member.
-INSERT INTO `Member_profile` (`member_id`, `profile_address`, `profile_detail_address`)
-SELECT `member_id`, '서울시 강남구 테헤란로', '123-456' FROM `Member`;
+-- profile_preferred, profile_interests 컬럼 타입 변경(JSON -> VARCHAR)에 따른 데이터 추가
+INSERT INTO `Member_profile` (`member_id`, `profile_address`, `profile_detail_address`, `profile_preferred`, `profile_interests`)
+SELECT `member_id`, '서울시 강남구 테헤란로', '123-456', '캐주얼, 비비드 컬러', '영화, 음악, 여행' FROM `Member`;
 
 -- 4. Member_grade_history: Initial grade assignment history.
 INSERT INTO `Member_grade_history` (`member_id`, `grade_code`, `history_before`, `history_after`, `history_changed`)
