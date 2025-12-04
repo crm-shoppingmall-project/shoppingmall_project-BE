@@ -49,7 +49,7 @@ public class MemberService {
                 .memberGender(signUpRequestDTO.getMemberGender())
                 .memberBirth(signUpRequestDTO.getMemberBirth())
                 .memberGrade(defaultGrade)
-                .memberStatus(MemberStatus.ACTIVE)
+                .memberStatus(MemberStatus.active)
                 .memberRole( // 권한 설정
                         (signUpRequestDTO.getRole() != null && !signUpRequestDTO.getRole().isEmpty())
                                 ? UserRole.valueOf(signUpRequestDTO.getRole())
