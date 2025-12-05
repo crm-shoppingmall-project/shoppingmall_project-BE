@@ -1,4 +1,4 @@
-package com.twog.shopping.domain.member.entity;
+package com.twog.shopping.global.common.entity;
 
 
 public enum GradeName {

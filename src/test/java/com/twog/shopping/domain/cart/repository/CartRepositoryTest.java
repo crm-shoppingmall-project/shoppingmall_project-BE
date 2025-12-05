@@ -1,7 +1,7 @@
 package com.twog.shopping.domain.cart.repository;
 
 import com.twog.shopping.domain.cart.entity.Cart;
-import com.twog.shopping.domain.member.entity.GradeName;
+import com.twog.shopping.global.common.entity.GradeName;
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.entity.MemberGrade; // MemberGrade import
 import com.twog.shopping.domain.member.repository.MemberGradeRepository; // MemberGradeRepository import

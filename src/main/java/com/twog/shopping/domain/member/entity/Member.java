@@ -1,5 +1,6 @@
 package com.twog.shopping.domain.member.entity;
 
+import com.twog.shopping.global.common.entity.GradeName;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -62,6 +63,26 @@ public class Member {
     @Enumerated(value = EnumType.STRING)
     private UserRole memberRole;
 
+//    public static Member createMember(
+//            String memberEmail,
+//            String memberName,
+//            String memberPhone,
+//            char memberGender,
+//            LocalDate memberBirth,
+//            String memberPwd
+//    ){
+//        LocalDateTime now = LocalDateTime.now();
+//
+//        return Member.builder()
+//
+//
+//
+//    }
+
+
+
+
+
     @PrePersist
     public void onCreate(){
         if(this.memberCreated == null){
@@ -72,16 +93,21 @@ public class Member {
         }
 
         if(this.memberLastAt == null){
-            this.memberLastAt = LocalDateTime.now();
+            this.memberLastAt = LocalDateTime.now();  // 마지막 로그인 날짜
         }
-    }
 
+
+    }
 
     @PreUpdate
     public void onUpdate(){
         this.memberUpdated = LocalDateTime.now();
 
     }
+
+
+
+
 
 
 }

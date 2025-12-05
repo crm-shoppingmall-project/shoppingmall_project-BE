@@ -1,12 +1,12 @@
 package com.twog.shopping.domain.member.entity;
 
+import com.twog.shopping.global.common.entity.GradeName;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
 @Table(name = "member_grade")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @ToString
