@@ -45,7 +45,7 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_status",nullable = false)
-    private MemberStatus memberStatus = MemberStatus.active;
+    private MemberStatus memberStatus;
 
     @Column(name = "member_created",nullable = false)
     private LocalDateTime memberCreated = LocalDateTime.now();
@@ -63,51 +63,67 @@ public class Member {
     @Enumerated(value = EnumType.STRING)
     private UserRole memberRole;
 
-//    public static Member createMember(
-//            String memberEmail,
-//            String memberName,
-//            String memberPhone,
-//            char memberGender,
-//            LocalDate memberBirth,
-//            String memberPwd
-//    ){
-//        LocalDateTime now = LocalDateTime.now();
-//
-//        return Member.builder()
-//
-//
-//
-//    }
+    public static Member createNewMember(
 
+            MemberGrade grade,
+            String memberEmail,
+            String memberName,
+            String memberPhone,
+            char memberGender,
+            LocalDate memberBirth,
+            String encodePwd
+    ){
+        LocalDateTime now = LocalDateTime.now();
 
-
-
-
-    @PrePersist
-    public void onCreate(){
-        if(this.memberCreated == null){
-            this.memberCreated = LocalDateTime.now();
-        }
-        if(this.memberUpdated == null){
-            this.memberUpdated = this.memberCreated;
-        }
-
-        if(this.memberLastAt == null){
-            this.memberLastAt = LocalDateTime.now();  // 마지막 로그인 날짜
-        }
-
-
+        return Member.builder()
+                .memberGrade(grade)
+                .memberEmail(memberEmail)
+                .memberName(memberName)
+                .memberPhone(memberPhone)
+                .memberGender(memberGender)
+                .memberBirth(memberBirth)
+                .memberPwd(encodePwd)
+                .memberStatus(MemberStatus.active)
+                .memberRole(UserRole.USER)
+                .memberCreated(now)
+                .memberUpdated(now)
+                .memberLastAt(now)
+                .build();
     }
+
+    public void changeGrade(MemberGrade newGrade){
+        this.memberGrade = newGrade;
+    }
+
+    public void changeStaus(MemberStatus newStatus){
+        this.memberStatus = newStatus;
+    }
+
+    public void withdraw(){
+        this.memberStatus = MemberStatus.withdrawn;
+        this.memberWithDrawn = LocalDateTime.now();
+    }
+
+    public void updateLastLogin(){
+        this.memberLastAt = LocalDateTime.now();
+    }
+
+    public void changePassword(String encodedPwd){
+        this.memberPwd = encodedPwd;
+    }
+
+    public void changePhone(String newPhone){
+        this.memberPhone = newPhone;
+    }
+
+
+
+
 
     @PreUpdate
     public void onUpdate(){
         this.memberUpdated = LocalDateTime.now();
 
     }
-
-
-
-
-
 
 }

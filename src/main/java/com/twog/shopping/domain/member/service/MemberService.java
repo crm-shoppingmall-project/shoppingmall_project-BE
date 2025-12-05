@@ -44,17 +44,16 @@ public class MemberService {
             throw new RuntimeException("이미 존재하는 이메일입니다.");
         }
 
-        Member member = Member.builder()
-                .memberEmail(signUpRequestDTO.getMemberEmail())
-                .memberName(signUpRequestDTO.getMemberName())
-                .memberPhone(signUpRequestDTO.getMemberPhone())
-                .memberGender(signUpRequestDTO.getMemberGender().charAt(0))
-                .memberBirth(signUpRequestDTO.getMemberBirth())
-                .memberGrade(defaultGrade)
-                .memberStatus(MemberStatus.active)
-                .memberRole(UserRole.USER)
-                .memberPwd(passwordEncoder.encode(signUpRequestDTO.getMemberPwd()))
-                .build();
+        Member member = Member.createNewMember(
+                    defaultGrade,
+                        signUpRequestDTO.getMemberEmail(),
+                        signUpRequestDTO.getMemberName(),
+                        signUpRequestDTO.getMemberPhone(),
+                        signUpRequestDTO.getMemberGender().charAt(0),
+                        signUpRequestDTO.getMemberBirth(),
+                        passwordEncoder.encode(signUpRequestDTO.getMemberPwd())
+                );
+
 
         memberRepository.save(member);
 
