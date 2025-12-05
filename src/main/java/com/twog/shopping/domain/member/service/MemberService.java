@@ -4,11 +4,10 @@ import com.twog.shopping.domain.member.dto.TokenDTO;
 import com.twog.shopping.domain.member.dto.request.LoginRequestDTO;
 import com.twog.shopping.domain.member.dto.request.SignUpRequestDTO;
 import com.twog.shopping.domain.member.dto.response.MemberResponseDTO;
-import com.twog.shopping.domain.member.entity.Member;
-import com.twog.shopping.domain.member.entity.MemberProfile;
+import com.twog.shopping.domain.member.entity.*;
+import com.twog.shopping.domain.member.repository.MemberGradeRepository;
 import com.twog.shopping.domain.member.repository.MemberProfileRepository;
 import com.twog.shopping.domain.member.repository.MemberRepository;
-import com.twog.shopping.domain.member.entity.UserRole;
 import com.twog.shopping.global.common.utils.TokenUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,23 +24,37 @@ public class MemberService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final MemberProfileRepository memberProfileRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MemberGradeRepository memberGradeRepository;
 
-    public MemberService(MemberRepository memberRepository, BCryptPasswordEncoder bCryptPasswordEncoder, MemberProfileRepository memberProfileRepository, PasswordEncoder passwordEncoder) {
+    public MemberService(MemberRepository memberRepository, BCryptPasswordEncoder bCryptPasswordEncoder, MemberProfileRepository memberProfileRepository, PasswordEncoder passwordEncoder,MemberGradeRepository memberGradeRepository) {
         this.memberRepository = memberRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.memberProfileRepository = memberProfileRepository;
         this.passwordEncoder = passwordEncoder;
+        this.memberGradeRepository = memberGradeRepository;
     }
 
     @Transactional
     public MemberResponseDTO signup(SignUpRequestDTO signUpRequestDTO) {
         // 1. User 엔티티 생성 (DTO -> Entity 변환)
+
+        MemberGrade defaultGrade = memberGradeRepository.findByGradeName(GradeName.BRONZE);
+
+
+
         Member member = Member.builder()
                 .memberEmail(signUpRequestDTO.getMemberEmail())
                 .memberName(signUpRequestDTO.getMemberName())
                 .memberPhone(signUpRequestDTO.getMemberPhone())
                 .memberGender(signUpRequestDTO.getMemberGender())
                 .memberBirth(signUpRequestDTO.getMemberBirth())
+                .memberGrade(defaultGrade)
+                .memberStatus(MemberStatus.active)
+                .memberRole( // 권한 설정
+                        (signUpRequestDTO.getRole() != null && !signUpRequestDTO.getRole().isEmpty())
+                                ? UserRole.valueOf(signUpRequestDTO.getRole())
+                                : UserRole.USER
+                )
                 .memberPwd(bCryptPasswordEncoder.encode(signUpRequestDTO.getMemberPwd()))
                 .build();
 

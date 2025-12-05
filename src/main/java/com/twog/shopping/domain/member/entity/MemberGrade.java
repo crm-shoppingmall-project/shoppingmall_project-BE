@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "tbl_memberGrade")
+@Table(name = "member_grade")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

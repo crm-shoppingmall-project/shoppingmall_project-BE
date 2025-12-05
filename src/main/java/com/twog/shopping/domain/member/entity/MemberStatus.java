@@ -1,6 +1,6 @@
 package com.twog.shopping.domain.member.entity;
 
 public enum MemberStatus {
-    ACTIVE,
-    WITHDRAWN
+    active,
+    withdrawn
 }

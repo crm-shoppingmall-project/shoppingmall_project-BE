@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tbl_member")
+@Table(name = "member")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -45,7 +45,7 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "member_status",nullable = false)
-    private MemberStatus memberStatus = MemberStatus.ACTIVE;
+    private MemberStatus memberStatus = MemberStatus.active;
 
     @Column(name = "member_created",nullable = false)
     private LocalDateTime memberCreated = LocalDateTime.now();
@@ -53,7 +53,7 @@ public class Member {
     @Column(name = "member_updated",nullable = false)
     private LocalDateTime memberUpdated = LocalDateTime.now();
 
-    @Column(name = "member_with_drawn")
+    @Column(name = "member_withdrawn")
     private LocalDateTime memberWithDrawn;
 
     @Column(name = "member_last_at",nullable = false)

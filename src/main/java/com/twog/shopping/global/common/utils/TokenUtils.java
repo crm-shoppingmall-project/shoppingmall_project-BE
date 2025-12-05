@@ -147,7 +147,7 @@ public class TokenUtils {
         Map<String, Object> claims = new HashMap<>();
 
         claims.put("email", member.getMemberEmail()); // 이름과
-        claims.put("Role", member.getMemberRole());         // 권한 정보로 claim 생성
+        claims.put("role", member.getMemberRole());         // 권한 정보로 claim 생성
 
         return claims;
     }
