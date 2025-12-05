@@ -19,11 +19,10 @@ public class Payment {
     @Column(name = "payment_id")
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "purchase_id", nullable = false)
-    private Purchase purchase;
+    @Column(name = "order_id", nullable = false)
+    private Long purchaseId;
 
-    @Column(name = "pg_tid", nullable = false, unique = true)
+    @Column(name = "pg_tid", nullable = false, unique = true, length = 20)
     private String pgTid;
 
     @Enumerated(EnumType.STRING)
