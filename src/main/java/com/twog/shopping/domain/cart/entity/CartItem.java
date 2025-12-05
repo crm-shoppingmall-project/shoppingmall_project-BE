@@ -2,17 +2,20 @@ package com.twog.shopping.domain.cart.entity;
 
 import com.twog.shopping.domain.product.entity.Product;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Cart_item")
 @Getter
-@Setter
 @ToString
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CartItem {
 
     @Id
@@ -28,8 +31,9 @@ public class CartItem {
     @JoinColumn(name = "product_id")
     private Product product;
 
+    @UpdateTimestamp
     @Column(name = "cart_item_updated")
-    private Timestamp cartItemUpdated;
+    private LocalDateTime cartItemUpdated;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "cart_item_status")

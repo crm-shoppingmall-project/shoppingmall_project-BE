@@ -51,7 +51,6 @@ public class CartRepositoryTest {
                 .memberGrade(bronzeGrade)
                 .memberRole(UserRole.USER)
                 .memberStatus(MemberStatus.active)
-                .memberGrade(bronzeGrade) // memberGrade 설정 추가
                 .build();
         
         testMember = memberRepository.save(member);
@@ -61,8 +60,7 @@ public class CartRepositoryTest {
     @DisplayName("특정 회원의 ID로 장바구니를 조회한다")
     void testFindByMember_MemberId() {
         // given
-        Cart cart = new Cart();
-        cart.setMember(testMember);
+        Cart cart = Cart.createCart(testMember);
         cartRepository.save(cart);
 
         // when

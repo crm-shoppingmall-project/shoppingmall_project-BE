@@ -2,8 +2,9 @@ package com.twog.shopping.domain.cart.entity;
 
 import com.twog.shopping.domain.member.entity.Member;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.util.ArrayList;
@@ -12,8 +13,8 @@ import java.util.List;
 @Entity
 @Table(name = "Cart")
 @Getter
-@Setter
 @ToString
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,4 +29,11 @@ public class Cart {
     @ToString.Exclude
     private List<CartItem> cartItems = new ArrayList<>();
 
+    private Cart(Member member) {
+        this.member = member;
+    }
+
+    public static Cart createCart(Member member) {
+        return new Cart(member);
+    }
 }
