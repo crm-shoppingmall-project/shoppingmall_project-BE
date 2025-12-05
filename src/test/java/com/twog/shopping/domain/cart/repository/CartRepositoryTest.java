@@ -51,6 +51,7 @@ public class CartRepositoryTest {
                 .memberGrade(bronzeGrade)
                 .memberRole(UserRole.USER)
                 .memberStatus(MemberStatus.active)
+                .memberGrade(bronzeGrade) // memberGrade 설정 추가
                 .build();
         
         testMember = memberRepository.save(member);
