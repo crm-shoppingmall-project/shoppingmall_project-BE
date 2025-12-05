@@ -40,13 +40,17 @@ public class MemberService {
 
         MemberGrade defaultGrade = memberGradeRepository.findByGradeName(GradeName.BRONZE);
 
+        boolean checkedEmail = memberRepository.existsByMemberEmail(signUpRequestDTO.getMemberEmail());
 
+        if(!checkedEmail){
+            throw new RuntimeException("이미 존재하는 이메일입니다.");
+        }
 
         Member member = Member.builder()
                 .memberEmail(signUpRequestDTO.getMemberEmail())
                 .memberName(signUpRequestDTO.getMemberName())
                 .memberPhone(signUpRequestDTO.getMemberPhone())
-                .memberGender(signUpRequestDTO.getMemberGender())
+                .memberGender(signUpRequestDTO.getMemberGender().charAt(0))
                 .memberBirth(signUpRequestDTO.getMemberBirth())
                 .memberGrade(defaultGrade)
                 .memberStatus(MemberStatus.active)
@@ -123,6 +127,7 @@ public class MemberService {
     public Optional<Member> findByEmail(String email) {
         return memberRepository.findByMemberEmail(email);
     }
+
 
     public Member getByEmailOrThrow(String email) {
         return memberRepository.findByMemberEmail(email)
