@@ -6,6 +6,7 @@ import com.twog.shopping.domain.cart.repository.CartRepository;
 import com.twog.shopping.domain.member.entity.*;
 import com.twog.shopping.domain.member.repository.MemberGradeRepository;
 import com.twog.shopping.domain.member.repository.MemberRepository;
+import com.twog.shopping.global.common.entity.GradeName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
