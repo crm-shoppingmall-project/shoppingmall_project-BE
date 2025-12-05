@@ -10,7 +10,6 @@ import com.twog.shopping.domain.member.repository.MemberProfileRepository;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.global.common.utils.TokenUtils;
 import jakarta.transaction.Transactional;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,14 +20,12 @@ import java.util.Optional;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final MemberProfileRepository memberProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final MemberGradeRepository memberGradeRepository;
 
-    public MemberService(MemberRepository memberRepository, BCryptPasswordEncoder bCryptPasswordEncoder, MemberProfileRepository memberProfileRepository, PasswordEncoder passwordEncoder,MemberGradeRepository memberGradeRepository) {
+    public MemberService(MemberRepository memberRepository, MemberProfileRepository memberProfileRepository, PasswordEncoder passwordEncoder,MemberGradeRepository memberGradeRepository) {
         this.memberRepository = memberRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.memberProfileRepository = memberProfileRepository;
         this.passwordEncoder = passwordEncoder;
         this.memberGradeRepository = memberGradeRepository;
@@ -40,9 +37,9 @@ public class MemberService {
 
         MemberGrade defaultGrade = memberGradeRepository.findByGradeName(GradeName.BRONZE);
 
-        boolean checkedEmail = memberRepository.existsByMemberEmail(signUpRequestDTO.getMemberEmail());
+        boolean exists = memberRepository.existsByMemberEmail(signUpRequestDTO.getMemberEmail());
 
-        if(!checkedEmail){
+        if(exists){
             throw new RuntimeException("이미 존재하는 이메일입니다.");
         }
 
@@ -54,12 +51,8 @@ public class MemberService {
                 .memberBirth(signUpRequestDTO.getMemberBirth())
                 .memberGrade(defaultGrade)
                 .memberStatus(MemberStatus.active)
-                .memberRole( // 권한 설정
-                        (signUpRequestDTO.getRole() != null && !signUpRequestDTO.getRole().isEmpty())
-                                ? UserRole.valueOf(signUpRequestDTO.getRole())
-                                : UserRole.USER
-                )
-                .memberPwd(bCryptPasswordEncoder.encode(signUpRequestDTO.getMemberPwd()))
+                .memberRole(UserRole.USER)
+                .memberPwd(passwordEncoder.encode(signUpRequestDTO.getMemberPwd()))
                 .build();
 
         memberRepository.save(member);
@@ -74,19 +67,6 @@ public class MemberService {
 
         memberProfileRepository.save(profile);
 
-        // 3. 권한 설정 로직 수정
-        // 요청에 role이 있으면 그걸 쓰고, 없으면 기본값 USER로 설정
-        if (signUpRequestDTO.getRole() != null && !signUpRequestDTO.getRole().isEmpty()) {
-            // String("ADMIN") -> Enum(UserRole.ADMIN)으로 변환
-            try {
-                member.setMemberRole(UserRole.valueOf(signUpRequestDTO.getRole()));
-            } catch (IllegalArgumentException e) {
-                // 이상한 권한(SUPER_MAN 등)이 들어오면 그냥 USER로 설정
-                member.setMemberRole(UserRole.USER);
-            }
-        } else {
-            member.setMemberRole(UserRole.USER);
-        }
 
         return MemberResponseDTO.builder()
                 .memberId(member.getMemberId())
