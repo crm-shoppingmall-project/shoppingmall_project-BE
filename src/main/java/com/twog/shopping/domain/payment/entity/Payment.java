@@ -19,7 +19,7 @@ public class Payment {
     @Column(name = "payment_id")
     private Long id;
 
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "purchase_id", nullable = false)
     private Long purchaseId;
 
     @Column(name = "pg_tid", nullable = false, unique = true, length = 20)
