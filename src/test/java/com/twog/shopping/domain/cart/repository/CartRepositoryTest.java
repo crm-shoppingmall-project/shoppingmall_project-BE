@@ -1,9 +1,13 @@
 package com.twog.shopping.domain.cart.repository;
 
 import com.twog.shopping.domain.cart.entity.Cart;
+<<<<<<< HEAD
 import com.twog.shopping.global.common.entity.GradeName;
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.entity.MemberGrade; // MemberGrade import
+=======
+import com.twog.shopping.domain.member.entity.*;
+>>>>>>> 6cba1587063111b75a0a96e40abc705f6f7e5f8b
 import com.twog.shopping.domain.member.repository.MemberGradeRepository; // MemberGradeRepository import
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +54,9 @@ public class CartRepositoryTest {
                 .memberBirth(LocalDate.of(1990, 1, 1))
                 .memberGender('M')
                 .memberPhone("010-1234-5678")
+                .memberGrade(bronzeGrade)
+                .memberRole(UserRole.USER)
+                .memberStatus(MemberStatus.active)
                 .memberGrade(bronzeGrade) // memberGrade 설정 추가
                 .build();
         
