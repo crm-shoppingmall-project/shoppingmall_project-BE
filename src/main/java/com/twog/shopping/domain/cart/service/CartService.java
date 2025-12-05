@@ -28,8 +28,7 @@ public class CartService {
             .orElseGet(() -> {
                 Member member = memberRepository.findById((long) memberId)
                         .orElseThrow(() -> new RuntimeException("해당 회원을 찾을 수 없습니다."));
-                Cart newCart = new Cart();
-                newCart.setMember(member);
+                Cart newCart = Cart.createCart(member);
                 return cartRepository.save(newCart);
             });
     }

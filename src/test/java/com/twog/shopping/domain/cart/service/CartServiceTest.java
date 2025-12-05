@@ -4,7 +4,7 @@ import com.twog.shopping.domain.cart.entity.Cart;
 import com.twog.shopping.domain.cart.entity.CartItem;
 import com.twog.shopping.domain.cart.repository.CartRepository;
 import com.twog.shopping.domain.member.entity.*;
-import com.twog.shopping.domain.member.repository.MemberGradeRepository; // MemberGradeRepository import
+import com.twog.shopping.domain.member.repository.MemberGradeRepository;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -62,8 +61,7 @@ class CartServiceTest {
         Member existingMember = memberRepository.save(member1);
         existingMemberId = existingMember.getMemberId().intValue();
 
-        Cart cart = new Cart();
-        cart.setMember(existingMember);
+        Cart cart = Cart.createCart(existingMember);
         cartRepository.save(cart);
 
         // 3. 신규 회원 생성
@@ -75,7 +73,7 @@ class CartServiceTest {
                 .memberGender('F')
                 .memberPhone("010-2222-2222")
                 .memberGrade(bronzeGrade)
-                .memberRole(UserRole.ADMIN)
+                .memberRole(UserRole.USER)
                 .memberStatus(MemberStatus.active)
                 .build();
         Member newMember = memberRepository.save(member2);
