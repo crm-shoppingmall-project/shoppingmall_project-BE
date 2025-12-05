@@ -8,7 +8,6 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "member_grade_history")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 

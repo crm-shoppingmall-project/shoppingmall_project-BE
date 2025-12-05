@@ -8,6 +8,7 @@ import com.twog.shopping.domain.member.entity.*;
 import com.twog.shopping.domain.member.repository.MemberGradeRepository;
 import com.twog.shopping.domain.member.repository.MemberProfileRepository;
 import com.twog.shopping.domain.member.repository.MemberRepository;
+import com.twog.shopping.global.common.entity.GradeName;
 import com.twog.shopping.global.common.utils.TokenUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
