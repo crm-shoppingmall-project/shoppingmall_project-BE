@@ -1,15 +1,10 @@
 package com.twog.shopping.domain.cart.repository;
 
 import com.twog.shopping.domain.cart.entity.Cart;
-<<<<<<< HEAD
-import com.twog.shopping.global.common.entity.GradeName;
-import com.twog.shopping.domain.member.entity.Member;
-import com.twog.shopping.domain.member.entity.MemberGrade; // MemberGrade import
-=======
 import com.twog.shopping.domain.member.entity.*;
->>>>>>> 6cba1587063111b75a0a96e40abc705f6f7e5f8b
 import com.twog.shopping.domain.member.repository.MemberGradeRepository; // MemberGradeRepository import
 import com.twog.shopping.domain.member.repository.MemberRepository;
+import com.twog.shopping.global.common.entity.GradeName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
