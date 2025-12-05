@@ -1,4 +1,4 @@
--- 사용 예: mysql -u ohgiraffers -p shoppingmalldb < "dummy_data_tripled_reset_fix.sql"
+-- 사용 예: mysql -u ohgiraffers -p shoppingmalldb --default-character-set=utf8mb4 < "dummy_data_add_constraints.sql"
 
 -- 데이터베이스 지정(환경에 맞게 조정)
 USE shoppingmalldb;

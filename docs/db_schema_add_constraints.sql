@@ -1,4 +1,4 @@
--- 사용 명령어: mysql -u ohgiraffers -p shoppingmalldb < "db_schema_test.sql"
+-- 사용 명령어: mysql -u ohgiraffers -p shoppingmalldb < "db_schema_add_constraints.sql"
 SET FOREIGN_KEY_CHECKS=0;
 
 -- Drop tables in reverse order of dependency
