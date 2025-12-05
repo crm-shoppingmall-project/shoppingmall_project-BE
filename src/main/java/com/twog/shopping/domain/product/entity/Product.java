@@ -14,7 +14,7 @@ public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long productId;
+    private int productId;
     private String productName;
     private String productCategory;
     private java.sql.Timestamp productRegisted;
