@@ -10,6 +10,7 @@ import com.twog.shopping.domain.member.repository.MemberProfileRepository;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.global.common.entity.GradeName;
 import com.twog.shopping.global.common.utils.TokenUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,19 +19,13 @@ import java.util.Optional;
 
 
 @Service
+@RequiredArgsConstructor
 public class MemberService {
 
     private final MemberRepository memberRepository;
     private final MemberProfileRepository memberProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final MemberGradeRepository memberGradeRepository;
-
-    public MemberService(MemberRepository memberRepository, MemberProfileRepository memberProfileRepository, PasswordEncoder passwordEncoder,MemberGradeRepository memberGradeRepository) {
-        this.memberRepository = memberRepository;
-        this.memberProfileRepository = memberProfileRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.memberGradeRepository = memberGradeRepository;
-    }
 
     // 회원가입
     @Transactional

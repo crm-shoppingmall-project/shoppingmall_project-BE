@@ -25,6 +25,9 @@ public class Member {
     @JoinColumn(name = "grade_code",nullable = false)
     private MemberGrade memberGrade;
 
+    @OneToOne(mappedBy = "member")
+    private MemberProfile memberProfile;
+
     @Column(name = "member_name",nullable = false)
     private String memberName;
 
@@ -89,6 +92,12 @@ public class Member {
                 .memberUpdated(now)
                 .memberLastAt(now)
                 .build();
+    }
+
+
+    public void updateMember(String name, String phone){
+        this.memberName = name;
+        this.memberPhone = phone;
     }
 
     public void changeGrade(MemberGrade newGrade){

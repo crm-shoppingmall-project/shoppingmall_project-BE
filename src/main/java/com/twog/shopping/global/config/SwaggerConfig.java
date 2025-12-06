@@ -35,7 +35,7 @@ public class SwaggerConfig {
                   "memberPwd": "password123!",
                   "confirmPassword": "password123!",
                   "memberPhone": "01012345678",
-                  "memberBirth": "1997-05-18",
+                  "memberBirth": "1999-01-11",
                   "memberGender": "M",
                   "role": "USER",
                   "profileAddress": "서울특별시 강남구 테헤란로 123",
