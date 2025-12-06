@@ -117,9 +117,6 @@ public class Member {
     }
 
 
-
-
-
     @PreUpdate
     public void onUpdate(){
         this.memberUpdated = LocalDateTime.now();

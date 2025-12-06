@@ -26,7 +26,7 @@ public class DetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         if (email == null || email.isBlank()) {
-            throw new AuthenticationServiceException("email is empty");
+            throw new UsernameNotFoundException("이메일이 비어 있습니다.");
         }
 
         // 🔹 이메일로 Member 조회
