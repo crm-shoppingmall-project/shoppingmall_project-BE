@@ -10,14 +10,16 @@ import com.twog.shopping.domain.member.repository.MemberProfileRepository;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.global.common.entity.GradeName;
 import com.twog.shopping.global.common.utils.TokenUtils;
-import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 
 @Service
+@RequiredArgsConstructor
 public class MemberService {
 
     private final MemberRepository memberRepository;
@@ -25,13 +27,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final MemberGradeRepository memberGradeRepository;
 
-    public MemberService(MemberRepository memberRepository, MemberProfileRepository memberProfileRepository, PasswordEncoder passwordEncoder,MemberGradeRepository memberGradeRepository) {
-        this.memberRepository = memberRepository;
-        this.memberProfileRepository = memberProfileRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.memberGradeRepository = memberGradeRepository;
-    }
-
+    // 회원가입
     @Transactional
     public MemberResponseDTO signup(SignUpRequestDTO signUpRequestDTO) {
         // 1. User 엔티티 생성 (DTO -> Entity 변환)
@@ -44,17 +40,16 @@ public class MemberService {
             throw new RuntimeException("이미 존재하는 이메일입니다.");
         }
 
-        Member member = Member.builder()
-                .memberEmail(signUpRequestDTO.getMemberEmail())
-                .memberName(signUpRequestDTO.getMemberName())
-                .memberPhone(signUpRequestDTO.getMemberPhone())
-                .memberGender(signUpRequestDTO.getMemberGender().charAt(0))
-                .memberBirth(signUpRequestDTO.getMemberBirth())
-                .memberGrade(defaultGrade)
-                .memberStatus(MemberStatus.active)
-                .memberRole(UserRole.USER)
-                .memberPwd(passwordEncoder.encode(signUpRequestDTO.getMemberPwd()))
-                .build();
+        Member member = Member.createNewMember(
+                    defaultGrade,
+                        signUpRequestDTO.getMemberEmail(),
+                        signUpRequestDTO.getMemberName(),
+                        signUpRequestDTO.getMemberPhone(),
+                        signUpRequestDTO.getMemberGender().charAt(0),
+                        signUpRequestDTO.getMemberBirth(),
+                        passwordEncoder.encode(signUpRequestDTO.getMemberPwd())
+                );
+
 
         memberRepository.save(member);
 
@@ -91,10 +86,10 @@ public class MemberService {
     public TokenDTO login(LoginRequestDTO loginRequestDTO){
 
         Member member = memberRepository.findByMemberEmail(loginRequestDTO.getMemberEmail())
-                .orElseThrow(()-> new RuntimeException("존재하지 않는 이메일 입니다."));
+                .orElseThrow(()-> new RuntimeException("이메일 혹은 비밀번호가 올바르지 않습니다."));
 
         if(!passwordEncoder.matches(loginRequestDTO.getMemberPwd(),member.getMemberPwd())){
-            throw new RuntimeException("비밀번호가 일치하지 않습니다");
+            throw new RuntimeException("이메일 혹은 비밀번호가 올바르지 않습니다.");
         }
 
         String token = TokenUtils.generateJwtToken(member);
@@ -105,11 +100,14 @@ public class MemberService {
     }
 
 
+    // 존재여부만 확인할떄
+    @Transactional(readOnly = true)
     public Optional<Member> findByEmail(String email) {
         return memberRepository.findByMemberEmail(email);
     }
 
 
+    @Transactional(readOnly = true)
     public Member getByEmailOrThrow(String email) {
         return memberRepository.findByMemberEmail(email)
                 .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다: " + email));

@@ -16,10 +16,10 @@ public class MemberProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "profile_id")
+    @Column(name = "profile_seq")
     private Long profileId;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY , cascade = CascadeType.ALL)
     @JoinColumn(name = "member_id" , nullable = false)
     private Member member;
 
@@ -34,6 +34,13 @@ public class MemberProfile {
 
     @Column(name = "profile_interests")
     private String profileInterests;
+
+    public void updateMemberInfo(String address, String detailAddress, String preferred, String interests){
+        this.profileAddress = address;
+        this.profileDetailAddress = detailAddress;
+        this.profilePreferred = preferred;
+        this.profileInterests = interests;
+    }
 
 
 }
