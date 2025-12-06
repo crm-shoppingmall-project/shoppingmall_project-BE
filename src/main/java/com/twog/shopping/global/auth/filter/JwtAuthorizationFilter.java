@@ -2,8 +2,10 @@ package com.twog.shopping.global.auth.filter;
 
 
 import com.twog.shopping.domain.member.entity.Member;
+import com.twog.shopping.domain.member.entity.MemberStatus;
 import com.twog.shopping.domain.member.entity.UserRole;
 import com.twog.shopping.domain.member.service.DetailsUser;
+import com.twog.shopping.domain.member.service.MemberService;
 import com.twog.shopping.global.common.AuthConstants;
 import com.twog.shopping.global.common.utils.TokenUtils;
 import io.jsonwebtoken.Claims;
@@ -32,8 +34,11 @@ import java.util.List;
 
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
-    public JwtAuthorizationFilter(AuthenticationManager authenticationManager) {
+    private final MemberService memberService;
+
+    public JwtAuthorizationFilter(AuthenticationManager authenticationManager, MemberService memberService) {
         super(authenticationManager);
+        this.memberService = memberService;
     }
 
     @Override
@@ -76,15 +81,22 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
                 // 1) JWT에 넣었던 클레임에서 값 꺼내기
                 String email = claims.get("email", String.class);
-                String role = claims.get("role", String.class);   // 예: "USER", "ADMIN"
+//                String role = claims.get("role", String.class);   // 예: "USER", "ADMIN"
 
-                Member member = Member.builder()
-                        .memberEmail(email)
-                        .memberRole(UserRole.valueOf(role))  // enum 변환
-                        .build();
+//                Member member = Member.builder()
+//                        .memberEmail(email)
+//                        .memberRole(UserRole.valueOf(role))  // enum 변환
+//                        .build();
 
+                Member user = memberService.getByEmailOrThrow(email);
 
-                DetailsUser principal = new DetailsUser(member);
+                if(user.getMemberStatus() == MemberStatus.withdrawn){
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+                    return;
+                }
+
+                DetailsUser principal = new DetailsUser(user);
 
                 AbstractAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(
@@ -105,7 +117,9 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
             }
 
         } catch (Exception e) {
-            response.setContentType("application/json");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json;charset=UTF-8");
             PrintWriter printWriter = response.getWriter();
             JSONObject jsonObject = jsonResponseWrapper(e);
             printWriter.print(jsonObject);  // 내보내기

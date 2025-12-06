@@ -19,7 +19,7 @@ public class MemberProfile {
     @Column(name = "profile_seq")
     private Long profileId;
 
-    @OneToOne(fetch = FetchType.LAZY , cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.LAZY )
     @JoinColumn(name = "member_id" , nullable = false)
     private Member member;
 

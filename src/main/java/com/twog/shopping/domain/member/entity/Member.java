@@ -25,7 +25,7 @@ public class Member {
     @JoinColumn(name = "grade_code",nullable = false)
     private MemberGrade memberGrade;
 
-    @OneToOne(mappedBy = "member")
+    @OneToOne(mappedBy = "member" , cascade = CascadeType.ALL)
     private MemberProfile memberProfile;
 
     @Column(name = "member_name",nullable = false)
