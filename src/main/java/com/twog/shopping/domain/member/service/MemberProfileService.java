@@ -73,8 +73,9 @@ public class MemberProfileService {
         Member member = memberRepository.findByMemberEmail(email)
                 .orElseThrow(() -> new RuntimeException("회원정보를 찾을 수 없습니다." + email));
 
-        if(!member.getMemberPwd().equals(dto.getOldPassword())){
-            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+        if(!passwordEncoder.matches(dto.getOldPassword(),member.getMemberPwd())){
+
+            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다." + member.getMemberPwd());
         }
 
         if(!dto.getNewPassword().equals(dto.getConfirmPassword())){
@@ -96,7 +97,7 @@ public class MemberProfileService {
         Member member = memberRepository.findByMemberEmail(email)
                 .orElseThrow(()-> new RuntimeException("회원정보를 찾을 수 없습니다." + email));
 
-        if(!member.getMemberPwd().equals(dto.getMemberPwd())){
+        if(!passwordEncoder.matches(dto.getMemberPwd(),member.getMemberPwd())){
             throw new RuntimeException("비밀번호가 일치하지 않습니다.");
         }
 

@@ -81,12 +81,12 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
                 // 1) JWT에 넣었던 클레임에서 값 꺼내기
                 String email = claims.get("email", String.class);
-                String role = claims.get("role", String.class);   // 예: "USER", "ADMIN"
+//                String role = claims.get("role", String.class);   // 예: "USER", "ADMIN"
 
-                Member member = Member.builder()
-                        .memberEmail(email)
-                        .memberRole(UserRole.valueOf(role))  // enum 변환
-                        .build();
+//                Member member = Member.builder()
+//                        .memberEmail(email)
+//                        .memberRole(UserRole.valueOf(role))  // enum 변환
+//                        .build();
 
                 Member user = memberService.getByEmailOrThrow(email);
 
@@ -96,7 +96,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
                     return;
                 }
 
-                DetailsUser principal = new DetailsUser(member);
+                DetailsUser principal = new DetailsUser(user);
 
                 AbstractAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(
