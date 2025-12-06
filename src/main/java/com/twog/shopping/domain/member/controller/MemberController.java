@@ -1,9 +1,7 @@
 package com.twog.shopping.domain.member.controller;
 
 import com.twog.shopping.domain.member.dto.TokenDTO;
-import com.twog.shopping.domain.member.dto.request.LoginRequestDTO;
-import com.twog.shopping.domain.member.dto.request.MemberProfileRequestDTO;
-import com.twog.shopping.domain.member.dto.request.SignUpRequestDTO;
+import com.twog.shopping.domain.member.dto.request.*;
 import com.twog.shopping.domain.member.dto.response.MemberProfileResponseDTO;
 import com.twog.shopping.domain.member.dto.response.MemberResponseDTO;
 import com.twog.shopping.domain.member.entity.Member;
@@ -55,23 +53,42 @@ public class MemberController {
 
     }
 
-    @PutMapping("/mypage/update/{memberId}")
-    public ResponseEntity<MemberResponseDTO> updateMyPage(@AuthenticationPrincipal DetailsUser detailsUser
-                                                            , @Valid @RequestBody MemberProfileRequestDTO dto
-                                                            , @PathVariable Long memberId) {
+    @PutMapping("/mypage/update")
+    public ResponseEntity<MemberProfileResponseDTO> updateMyPage(@AuthenticationPrincipal DetailsUser detailsUser
+                                                            , @Valid @RequestBody MemberProfileRequestDTO dto) {
 
-        Member loginMember = detailsUser.getMember();
 
-        if (!loginMember.getMemberId().equals(memberId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+       String email = detailsUser.getUsername();
 
-        MemberResponseDTO response = memberProfileService.updateMyPage(loginMember.getMemberEmail(),dto);
+        MemberProfileResponseDTO response = memberProfileService.updateMyPage(email, dto);
 
 
         return ResponseEntity.ok(response);
 
     }
 
+
+    @PatchMapping("/mypage/changePwd")
+    public ResponseEntity<Void> changePwd(
+            @AuthenticationPrincipal DetailsUser detailsUser,
+            @Valid @RequestBody PwdChangeRequestDTO dto ){
+
+        String email = detailsUser.getUsername();
+        memberProfileService.changePwd(email,dto);
+
+        return ResponseEntity.noContent().build();
+    }
+
+
+    @DeleteMapping("/mypage/withdraw")
+    public ResponseEntity<Void> withdraw(
+            @AuthenticationPrincipal DetailsUser detailsUser,
+            @Valid @RequestBody MemberWithdrawnRequestDTO dto
+     ){
+        String email = detailsUser.getUsername();
+        memberProfileService.withdraw(email,dto);
+
+        return ResponseEntity.noContent().build();
+    }
 
 }

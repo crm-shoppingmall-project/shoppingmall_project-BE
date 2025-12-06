@@ -88,6 +88,10 @@ public class MemberService {
         Member member = memberRepository.findByMemberEmail(loginRequestDTO.getMemberEmail())
                 .orElseThrow(()-> new RuntimeException("이메일 혹은 비밀번호가 올바르지 않습니다."));
 
+        if(member.getMemberStatus() == MemberStatus.withdrawn) {
+            throw new RuntimeException("탈퇴한 회원입니다. 다시 가입해주세요.");
+        }
+
         if(!passwordEncoder.matches(loginRequestDTO.getMemberPwd(),member.getMemberPwd())){
             throw new RuntimeException("이메일 혹은 비밀번호가 올바르지 않습니다.");
         }

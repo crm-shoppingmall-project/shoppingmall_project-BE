@@ -1,11 +1,13 @@
 package com.twog.shopping.domain.member.dto.request;
 
 import jakarta.validation.constraints.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-@Data
+@Getter
+@NoArgsConstructor
 public class SignUpRequestDTO {
 
     @NotBlank(message = "이메일은 필수 입력값입니다.")
@@ -34,7 +36,6 @@ public class SignUpRequestDTO {
     @Pattern(regexp = "M|F", message = "성별은 M 또는 F만 입력 가능합니다.")
     private String memberGender;
 
-    @NotBlank(message = "권한(role)은 필수 입력값입니다.")
     private String role;
 
     // ===== 프로필 정보 =====
