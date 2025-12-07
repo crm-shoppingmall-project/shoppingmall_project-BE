@@ -10,8 +10,8 @@ import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.domain.product.entity.Product;
 import com.twog.shopping.domain.product.repository.ProductRepository;
-import com.twog.shopping.global.exception.InvalidProductStatusException;
-import com.twog.shopping.global.exception.ResourceNotFoundException;
+import com.twog.shopping.global.error.exception.InvalidProductStatusException;
+import com.twog.shopping.global.error.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -156,13 +156,11 @@ public class CartService {
 
         for (CartDetailDto cartDetail : cartDetails) {
             Product product = productRepository.findById(cartDetail.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "해당 상품을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
             // 상품 상태 검증
             if (product.getProductStatus() == com.twog.shopping.domain.product.entity.ProductStatus.DELETED) {
-                throw new InvalidProductStatusException(
-                        "판매가 중단된 상품이 포함되어 있습니다. (" + product.getProductName() + ")");
+                throw new InvalidProductStatusException("판매가 중단된 상품이 포함되어 있습니다. (" + product.getProductName() + ")");
             }
 
             cart.updateItemQuantity(product, cartDetail.getCartQuantity());

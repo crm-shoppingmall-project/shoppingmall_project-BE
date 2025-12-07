@@ -2,6 +2,8 @@ package com.twog.shopping.domain.cart.entity;
 
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.product.entity.Product;
+import com.twog.shopping.global.error.exception.OutOfStockException;
+import com.twog.shopping.global.error.exception.ResourceNotFoundException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -66,7 +68,7 @@ public class Cart {
             checkStock(product, quantity);
             item.updateQuantity(quantity);
         } else {
-            throw new com.twog.shopping.global.exception.ResourceNotFoundException("상품이 존재하지 않습니다.");
+            throw new ResourceNotFoundException("상품이 존재하지 않습니다.");
         }
     }
 
@@ -91,7 +93,7 @@ public class Cart {
     // 재고 검증
     private void checkStock(Product product, int quantity) {
         if (!product.isStock(quantity)) {
-            throw new com.twog.shopping.global.exception.OutOfStockException(
+            throw new OutOfStockException(
                     "재고가 부족합니다. (남은 수량: " + product.getProductQuantity() + ")");
         }
     }

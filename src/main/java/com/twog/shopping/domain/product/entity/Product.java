@@ -1,7 +1,7 @@
 package com.twog.shopping.domain.product.entity;
 
 import com.twog.shopping.domain.cart.entity.CartItem;
-import com.twog.shopping.global.exception.OutOfStockException;
+import com.twog.shopping.global.error.exception.OutOfStockException;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -66,7 +66,7 @@ public class Product {
 
     @Builder
     public Product(String productName, String productCategory, int productQuantity, int productPrice,
-                   ProductStatus productStatus) {
+            ProductStatus productStatus) {
         this.productName = productName;
         this.productCategory = productCategory;
         this.productQuantity = productQuantity;
@@ -77,7 +77,7 @@ public class Product {
     // 비지니스 로직
 
     public void updateProductInfo(String productName, String productCategory, int productQuantity, int productPrice,
-                                  ProductStatus productStatus) {
+            ProductStatus productStatus) {
         this.productName = productName;
         this.productCategory = productCategory;
         this.productQuantity = productQuantity;

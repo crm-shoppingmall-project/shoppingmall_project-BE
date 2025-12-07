@@ -3,7 +3,7 @@ package com.twog.shopping.domain.product.service;
 import com.twog.shopping.domain.product.entity.Product;
 import com.twog.shopping.domain.product.repository.ProductRepository;
 import com.twog.shopping.domain.member.entity.UserRole;
-import com.twog.shopping.global.exception.ResourceNotFoundException;
+import com.twog.shopping.global.error.exception.ResourceNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
