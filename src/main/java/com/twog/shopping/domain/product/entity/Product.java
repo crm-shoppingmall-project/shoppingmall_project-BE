@@ -1,13 +1,8 @@
 package com.twog.shopping.domain.product.entity;
 
 import com.twog.shopping.domain.cart.entity.CartItem;
-import com.twog.shopping.domain.purchase.entity.PurchaseDetail;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder; // 추가
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -100,5 +95,10 @@ public class Product {
 
     public boolean isStock(int quantity) {
         return this.productQuantity >= quantity;
+    }
+
+    // 논리적 삭제 로직
+    public void delete() {
+        this.productStatus = ProductStatus.DELETED;
     }
 }

@@ -1,10 +1,151 @@
 package com.twog.shopping.domain.product.service;
 
+import com.twog.shopping.domain.product.dto.ProductRequestDto;
+import com.twog.shopping.domain.product.dto.ProductResponseDto;
+import com.twog.shopping.domain.product.entity.Product;
+import com.twog.shopping.domain.product.entity.ProductStatus;
+import com.twog.shopping.domain.product.repository.ProductRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@SpringBootTest
+@Transactional
+// 각 테스트 메서드가 끝날 때마다 컨텍스트를 리셋하도록 만드는 방법(차후 독립적 테스트가 필요할 경우 유용)
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ProductServiceTest {
 
+    @Autowired
+    private ProductService productService;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    private Product product1;
+
+    @BeforeEach
+    void setUp() {
+        product1 = productRepository.save(Product.builder()
+                .productName("Test Product 1")
+                .productCategory("Category A")
+                .productPrice(10000)
+                .productQuantity(100)
+                .productStatus(ProductStatus.ACTIVE)
+                .build());
+
+        productRepository.save(Product.builder()
+                .productName("Test Product 2")
+                .productCategory("Category B")
+                .productPrice(20000)
+                .productQuantity(50)
+                .productStatus(ProductStatus.INACTIVE)
+                .build());
+    }
+
     @Test
-    void test() {
+    @DisplayName("상품을 성공적으로 생성한다")
+    void createProductTest() {
+        // given
+        ProductRequestDto requestDto = ProductRequestDto.builder()
+                .productName("New Product")
+                .productCategory("Category C")
+                .productPrice(15000)
+                .productQuantity(200)
+                .productStatus(ProductStatus.ACTIVE)
+                .build();
+
+        // when
+        ProductResponseDto responseDto = productService.createProduct(requestDto);
+
+        // then
+        assertThat(responseDto.getProductName()).isEqualTo("New Product");
+        assertThat(responseDto.getProductPrice()).isEqualTo(15000);
+        assertThat(productRepository.findById(responseDto.getProductId())).isPresent();
+    }
+
+    @Test
+    @DisplayName("상품 정보를 성공적으로 수정한다")
+    void updateProductTest() {
+        // given
+        ProductRequestDto requestDto = ProductRequestDto.builder()
+                .productName("Updated Product 1")
+                .productCategory("Category A-1")
+                .productPrice(12000)
+                .productQuantity(150)
+                .productStatus(ProductStatus.INACTIVE)
+                .build();
+
+        // when
+        ProductResponseDto responseDto = productService.updateProduct(product1.getProductId(), requestDto);
+
+        // then
+        assertThat(responseDto.getProductName()).isEqualTo("Updated Product 1");
+        assertThat(responseDto.getProductPrice()).isEqualTo(12000);
+        assertThat(responseDto.getProductStatus()).isEqualTo(ProductStatus.INACTIVE);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 상품 수정 시 예외를 발생시킨다")
+    void updateNonExistingProductTest() {
+        // given
+        int nonExistingProductId = 999;
+        ProductRequestDto requestDto = ProductRequestDto.builder().build();
+
+        // when & then
+        assertThrows(RuntimeException.class, () -> productService.updateProduct(nonExistingProductId, requestDto));
+    }
+
+    @Test
+    @DisplayName("상품을 논리적으로 삭제한다")
+    void deleteProductTest() {
+        // when
+        productService.deleteProduct(product1.getProductId());
+
+        // then
+        Optional<Product> deletedProductOpt = productRepository.findById(product1.getProductId());
+        assertThat(deletedProductOpt).isPresent();
+        assertThat(deletedProductOpt.get().getProductStatus()).isEqualTo(ProductStatus.DELETED);
+    }
+
+    @Test
+    @DisplayName("모든 조건 없이 상품 목록을 조회한다")
+    void findProductsWithoutConditionsTest() {
+        // when
+        List<ProductResponseDto> products = productService.findProducts(null, null, null, null);
+
+        // then
+        assertThat(products).hasSize(154);
+    }
+
+    @Test
+    @DisplayName("상품 이름으로 상품 목록을 조회한다")
+    void findProductsByProductNameTest() {
+        // when
+        List<ProductResponseDto> products = productService.findProducts(null, "Product 1", null, null);
+
+        // then
+        assertThat(products).hasSize(1);
+        assertThat(products.getFirst().getProductName()).isEqualTo("Test Product 1");
+    }
+
+    @Test
+    @DisplayName("카테고리로 상품 목록을 조회한다")
+    void findProductsByCategoryTest() {
+        // when
+        List<ProductResponseDto> products = productService.findProducts(null, null, "Category B", null);
+
+        // then
+        assertThat(products).hasSize(1);
+        assertThat(products.getFirst().getProductName()).isEqualTo("Test Product 2");
     }
 }

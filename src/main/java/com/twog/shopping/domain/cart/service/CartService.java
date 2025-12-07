@@ -68,6 +68,11 @@ public class CartService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("해당 상품을 찾을 수 없습니다."));
 
+        // 상품 상태 검증
+        if (product.getProductStatus() == com.twog.shopping.domain.product.entity.ProductStatus.DELETED) {
+            throw new RuntimeException("판매가 중단된 상품입니다.");
+        }
+
         memberCart.addItem(product, quantity);
     }
 
@@ -88,6 +93,11 @@ public class CartService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("해당 상품을 찾을 수 없습니다."));
 
+        // 상품 상태 검증 (수량 변경 시에도 유효하지 않은 상품이면 차단)
+        if (product.getProductStatus() == com.twog.shopping.domain.product.entity.ProductStatus.DELETED) {
+            throw new RuntimeException("판매가 중단된 상품입니다.");
+        }
+
         memberCart.updateItemQuantity(product, quantity);
     }
 
@@ -103,9 +113,19 @@ public class CartService {
                     int cartQuantity = item.getCartItemQuantity();
                     boolean isOrderable = product.isStock(cartQuantity);
 
+                    // 삭제된 상품인 경우 주문 불가 처리
+                    if (product.getProductStatus() == com.twog.shopping.domain.product.entity.ProductStatus.DELETED) {
+                        isOrderable = false;
+                    }
+
                     String message = null;
                     if (!isOrderable) {
-                        message = "재고가 부족하여 주문할 수 없습니다. (현재 재고: " + currentStock + ")";
+                        if (product
+                                .getProductStatus() == com.twog.shopping.domain.product.entity.ProductStatus.DELETED) {
+                            message = "판매가 중단된 상품입니다.";
+                        } else {
+                            message = "재고가 부족하여 주문할 수 없습니다. (현재 재고: " + currentStock + ")";
+                        }
                     }
 
                     return CartDetailDto.builder()
@@ -130,6 +150,11 @@ public class CartService {
         for (CartDetailDto cartDetail : cartDetails) {
             Product product = productRepository.findById(cartDetail.getProductId())
                     .orElseThrow(() -> new RuntimeException("해당 상품을 찾을 수 없습니다."));
+
+            // 상품 상태 검증
+            if (product.getProductStatus() == com.twog.shopping.domain.product.entity.ProductStatus.DELETED) {
+                throw new RuntimeException("판매가 중단된 상품이 포함되어 있습니다. (" + product.getProductName() + ")");
+            }
 
             cart.updateItemQuantity(product, cartDetail.getCartQuantity());
         }
