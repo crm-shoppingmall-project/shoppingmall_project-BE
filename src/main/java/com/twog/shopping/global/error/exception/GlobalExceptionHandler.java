@@ -1,4 +1,4 @@
-package com.twog.shopping.global.exception;
+package com.twog.shopping.global.error.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +33,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidProductStatusException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidProductStatusException(InvalidProductStatusException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.BAD_REQUEST.value());
+        response.put("error", "Bad Request");
+        response.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(PromotionException.class)
+    public ResponseEntity<Map<String, Object>> handlePromotionException(PromotionException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", HttpStatus.BAD_REQUEST.value());
         response.put("error", "Bad Request");
