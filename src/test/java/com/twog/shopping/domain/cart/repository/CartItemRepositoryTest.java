@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -53,12 +54,12 @@ class CartItemRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        // orElseGet 대신 테스트마다 새로운 등급을 생성하여 사용
         MemberGrade bronzeGrade = memberGradeRepository.save(MemberGrade.builder()
                 .gradeName(GradeName.BRONZE)
                 .gradeDesc("브론즈 등급")
                 .build());
 
+        // Member 생성 시, 빌더에 누락된 필수 필드를 직접 추가
         member = memberRepository.save(Member.builder()
                 .memberName("testUser")
                 .memberEmail("test@test.com")
@@ -69,6 +70,10 @@ class CartItemRepositoryTest {
                 .memberGrade(bronzeGrade)
                 .memberRole(UserRole.USER)
                 .memberStatus(MemberStatus.active)
+                // 날짜 필드를 빌더에서 직접 설정
+                .memberCreated(LocalDateTime.now())
+                .memberUpdated(LocalDateTime.now())
+                .memberLastAt(LocalDateTime.now())
                 .build());
 
         cart = cartRepository.save(Cart.createCart(member));
