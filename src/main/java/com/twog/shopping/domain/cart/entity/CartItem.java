@@ -18,6 +18,38 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CartItem {
 
+    public static CartItem createCartItem(Cart cart, Product product, int quantity) {
+        CartItem cartItem = new CartItem();
+        cartItem.cart = cart;
+        cartItem.product = product;
+        cartItem.cartItemQuantity = quantity;
+        cartItem.cartItemStatus = CartItemStatus.ACTIVE;
+        return cartItem;
+    }
+
+    public void addQuantity(int quantity) {
+        this.cartItemQuantity += quantity;
+    }
+
+    public void removeQuantity(int quantity) {
+        this.cartItemQuantity -= quantity;
+    }
+
+    public void updateQuantity(int quantity) {
+        this.cartItemQuantity = quantity;
+    }
+
+    public void updateCartItemStatus(CartItemStatus cartItemStatus) {
+        this.cartItemStatus = cartItemStatus;
+    }
+
+    // 삭제된 아이템 복구 로직
+    public void reactivate() {
+        if (this.cartItemStatus == CartItemStatus.REMOVED) {
+            this.cartItemStatus = CartItemStatus.ACTIVE;
+        }
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cart_item_id")
