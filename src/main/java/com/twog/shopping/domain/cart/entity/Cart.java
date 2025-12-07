@@ -66,7 +66,7 @@ public class Cart {
             checkStock(product, quantity);
             item.updateQuantity(quantity);
         } else {
-            throw new RuntimeException("상품이 존재하지 않습니다.");
+            throw new com.twog.shopping.global.exception.ResourceNotFoundException("상품이 존재하지 않습니다.");
         }
     }
 
@@ -91,7 +91,8 @@ public class Cart {
     // 재고 검증
     private void checkStock(Product product, int quantity) {
         if (!product.isStock(quantity)) {
-            throw new RuntimeException("재고가 부족합니다. (남은 수량: " + product.getProductQuantity() + ")");
+            throw new com.twog.shopping.global.exception.OutOfStockException(
+                    "재고가 부족합니다. (남은 수량: " + product.getProductQuantity() + ")");
         }
     }
 }
