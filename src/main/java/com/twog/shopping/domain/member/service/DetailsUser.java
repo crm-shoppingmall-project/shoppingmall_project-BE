@@ -56,8 +56,8 @@ public class DetailsUser implements UserDetails {
         return true; // 필요 시 수정
     }
 
-//    @Override
-//    public boolean isEnabled() {
-//        return member.getMemberStatus();
-//    }
+    @Override
+    public boolean isEnabled() {
+        return member.getMemberStatus().equals("active");
+    }
 }

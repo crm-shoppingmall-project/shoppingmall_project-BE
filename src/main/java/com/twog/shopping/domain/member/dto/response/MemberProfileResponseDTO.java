@@ -1,21 +1,15 @@
 package com.twog.shopping.domain.member.dto.response;
 
-import lombok.*;
-
-import java.time.LocalDate;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Setter
-@ToString
-@Builder
-public class MemberResponseDTO {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class MemberProfileResponseDTO {
 
-    private Long memberId;
-    private String memberEmail;
     private String memberName;
     private String memberPhone;
-    private char memberGender;
-    private LocalDate memberBirth;
 
     private String profileAddress;
     private String profileDetailAddress;

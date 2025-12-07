@@ -1,5 +1,6 @@
 package com.twog.shopping.global.config;
 
+import com.twog.shopping.domain.member.service.MemberService;
 import com.twog.shopping.global.auth.filter.CustomAuthenticationFilter;
 import com.twog.shopping.global.auth.filter.JwtAuthorizationFilter;
 import com.twog.shopping.global.auth.handler.CustomAuthFailureHandler;
@@ -31,6 +32,12 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 // 컨트롤러에서 @PreAuthorize 또는 @PostAuthorize를 사용할 수 있다(메서드 단위 접근 제한 제어 가능)
 @EnableMethodSecurity(securedEnabled = true)
 public class WebSecurityConfig {
+
+    private final MemberService memberService;
+
+    public WebSecurityConfig(MemberService memberService) {
+        this.memberService = memberService;
+    }
 
     /**
      * description. 정적 자원에 대한 인증된 사용자의 접근을 설정하는 메소드
@@ -104,7 +111,7 @@ public class WebSecurityConfig {
      */
 
     private JwtAuthorizationFilter jwtAuthorizationFilter() {
-        return new JwtAuthorizationFilter(authenticationManager());
+        return new JwtAuthorizationFilter(authenticationManager(),memberService);
     }
 
     /**
