@@ -58,14 +58,17 @@ public class Product {
     private List<CartItem> cartItems = new ArrayList<>();
 
     /*
-    // To-do: PurchaseDetail과 매핑 문제 해결 필요
-    @OneToMany(mappedBy = "product")
-    @ToString.Exclude
-    private List<PurchaseDetail> purchaseDetails = new ArrayList<>();
-    */
+     * // To-do: PurchaseDetail과 매핑 문제 해결 필요
+     * 
+     * @OneToMany(mappedBy = "product")
+     * 
+     * @ToString.Exclude
+     * private List<PurchaseDetail> purchaseDetails = new ArrayList<>();
+     */
 
     @Builder
-    public Product(String productName, String productCategory, int productQuantity, int productPrice, ProductStatus productStatus) {
+    public Product(String productName, String productCategory, int productQuantity, int productPrice,
+            ProductStatus productStatus) {
         this.productName = productName;
         this.productCategory = productCategory;
         this.productQuantity = productQuantity;
@@ -73,7 +76,8 @@ public class Product {
         this.productStatus = productStatus;
     }
 
-    public void updateProductInfo(String productName, String productCategory, int productQuantity, int productPrice, ProductStatus productStatus) {
+    public void updateProductInfo(String productName, String productCategory, int productQuantity, int productPrice,
+            ProductStatus productStatus) {
         this.productName = productName;
         this.productCategory = productCategory;
         this.productQuantity = productQuantity;
@@ -85,8 +89,12 @@ public class Product {
     public void decreaseStock(int quantity) {
         int restStock = this.productQuantity - quantity;
         if (restStock < 0) {
-//             throw new Exception("재고 없수~"); // 예외 처리
+            // throw new Exception("재고 없수~"); // 예외 처리
         }
         this.productQuantity = restStock;
+    }
+
+    public boolean isStock(int quantity) {
+        return this.productQuantity >= quantity;
     }
 }
