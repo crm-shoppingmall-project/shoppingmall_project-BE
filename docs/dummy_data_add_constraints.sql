@@ -408,26 +408,140 @@ CALL generate_rfm_data();
 DROP PROCEDURE generate_rfm_data;
 
 -- History 600건
+
+# DELIMITER $$
+# CREATE PROCEDURE generate_history_logs()
+# BEGIN
+#   DECLARE i INT DEFAULT 1;
+#   WHILE i <= 600 DO
+#     INSERT INTO `History` (`history_datetime`,`history_action_type`,`history_member_id`,`history_detail`,`history_ip_address`,`history_ref_tbl`)
+#     VALUES (
+#       NOW() - INTERVAL FLOOR(RAND()*10000) MINUTE,
+#       ELT(FLOOR(1 + RAND()*7),'CREATE','UPDATE','DELETE','LOGIN','LOGOUT','PAID','REFUND'),
+#       FLOOR(1 + RAND()*90),
+#       CONCAT('Action log entry #', i),
+#       CONCAT('192.168.1.', FLOOR(1 + RAND()*254)),
+#       ELT(FLOOR(1 + RAND()*7),'Member','Purchase','Segment','CS_ticket','Product','Return_request','CART_ITEM')
+#     );
+#     SET i = i + 1;
+#   END WHILE;
+# END$$
+# DELIMITER ;
+# CALL generate_history_logs();
+# DROP PROCEDURE generate_history_logs;
+
+
 DELIMITER $$
-CREATE PROCEDURE generate_history_logs()
+
+CREATE PROCEDURE generate_history_logs(IN p_rows INT)
 BEGIN
-  DECLARE i INT DEFAULT 1;
-  WHILE i <= 600 DO
-    INSERT INTO `History` (`history_datetime`,`history_action_type`,`history_member_id`,`history_detail`,`history_ip_address`,`history_ref_tbl`)
-    VALUES (
-      NOW() - INTERVAL FLOOR(RAND()*10000) MINUTE,
-      ELT(FLOOR(1 + RAND()*7),'CREATE','UPDATE','DELETE','LOGIN','LOGOUT','PAID','REFUND'),
-      FLOOR(1 + RAND()*90),
-      CONCAT('Action log entry #', i),
-      CONCAT('192.168.1.', FLOOR(1 + RAND()*254)),
-      ELT(FLOOR(1 + RAND()*7),'Member','Purchase','Segment','CS_ticket','Product','Return_request','CART_ITEM')
-    );
-    SET i = i + 1;
-  END WHILE;
+    DECLARE i INT DEFAULT 1;
+    DECLARE v_ref_tbl_name VARCHAR(30);
+    DECLARE v_category_name VARCHAR(10);
+    DECLARE v_action_type_name VARCHAR(30);
+    DECLARE v_member_id BIGINT;
+    DECLARE v_ref_id BIGINT;
+
+    WHILE i <= p_rows DO
+
+            -- 1) 행동 주체(회원)
+            SET v_member_id = FLOOR(1 + RAND()*90);
+
+            -- 2) 카테고리 선택
+            SET v_category_name = ELT(
+                    FLOOR(1 + RAND()*6),
+                    'AUTH', 'VIEW', 'ENGAGE', 'PURCHASE', 'CS', 'SYSTEM'
+                                  );
+
+            -- 3) 카테고리별 action/ref_tbl/ref_id 매핑
+            CASE v_category_name
+                WHEN 'AUTH' THEN
+                    SET v_ref_tbl_name = 'member';
+                    SET v_action_type_name = ELT(
+                            FLOOR(1 + RAND()*2),
+                            'login_success',
+                            'logout_attempt'
+                                             );
+                    SET v_ref_id = v_member_id;
+
+                WHEN 'VIEW' THEN
+                    SET v_ref_tbl_name = 'product';
+                    SET v_action_type_name = ELT(
+                            FLOOR(1 + RAND()*2),
+                            'view_product',
+                            'view_home'
+                                             );
+                    SET v_ref_id = FLOOR(1 + RAND()*500);
+
+                WHEN 'ENGAGE' THEN
+                    SET v_ref_tbl_name = 'cart_item';
+                    SET v_action_type_name = ELT(
+                            FLOOR(1 + RAND()*2),
+                            'add_to_cart',
+                            'add_to_wishlist'
+                                             );
+                    SET v_ref_id = FLOOR(1 + RAND()*1000);
+
+                WHEN 'PURCHASE' THEN
+                    SET v_ref_tbl_name = 'purchase';
+                    SET v_action_type_name = ELT(
+                            FLOOR(1 + RAND()*3),
+                            'payment_success',
+                            'refund_complete',
+                            'order_placed'
+                                             );
+                    SET v_ref_id = FLOOR(1 + RAND()*500);
+
+                WHEN 'CS' THEN
+                    SET v_ref_tbl_name = 'cs_ticket';
+                    SET v_action_type_name = ELT(
+                            FLOOR(1 + RAND()*2),
+                            'cs_ticket_created',
+                            'cs_ticket_closed'
+                                             );
+                    SET v_ref_id = FLOOR(1 + RAND()*300);
+
+                ELSE -- SYSTEM
+                SET v_ref_tbl_name = NULL;
+                SET v_action_type_name = 'system_update';
+                SET v_ref_id = NULL;
+                END CASE;
+
+            -- 4) INSERT
+            INSERT INTO `History` (
+                `history_datetime`,
+                `history_action_type`,
+                `history_member_id`,
+                `history_detail`,
+                `history_ip_address`,
+                `history_ref_tbl`,
+                `history_action_category`,
+                `history_ref_id`
+            )
+            VALUES (
+                       NOW() - INTERVAL FLOOR(RAND()*10000) MINUTE,
+                       v_action_type_name,
+                       v_member_id,
+                       JSON_OBJECT(
+                               'log_index', i,
+                               'status', ELT(FLOOR(1 + RAND()*3), 'success', 'fail', 'pending'),
+                               'amount', IF(v_category_name = 'PURCHASE', FLOOR(RAND()*100000), NULL)
+                       ),
+                       CONCAT('192.168.1.', FLOOR(1 + RAND()*254)),
+                       v_ref_tbl_name,
+                       v_category_name,
+                       v_ref_id
+                   );
+
+            SET i = i + 1;
+        END WHILE;
 END$$
+
 DELIMITER ;
-CALL generate_history_logs();
+
+CALL generate_history_logs(10000);
 DROP PROCEDURE generate_history_logs;
+
 
 -- =======================================================
 -- I) 임포트 직후 점검(필요 시 주석 해제; 결과 0 기대)
