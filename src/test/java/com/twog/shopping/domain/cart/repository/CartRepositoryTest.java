@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -52,6 +53,9 @@ public class CartRepositoryTest {
                 .memberGrade(bronzeGrade)
                 .memberRole(UserRole.USER)
                 .memberStatus(MemberStatus.active)
+                .memberCreated(LocalDateTime.now())
+                .memberUpdated(LocalDateTime.now())
+                .memberLastAt(LocalDateTime.now())
                 .build();
         
         testMember = memberRepository.save(member);

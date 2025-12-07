@@ -1,14 +1,8 @@
 package com.twog.shopping.domain.product.entity;
 
 import com.twog.shopping.domain.cart.entity.CartItem;
-import com.twog.shopping.domain.purchase.entity.PurchaseDetail;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder; // 추가
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-// import lombok.Setter; // 제거
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -53,6 +47,9 @@ public class Product {
     @Column(name = "product_updated")
     private LocalDateTime productUpdated;
 
+    @Version
+    private Long version;
+
     @OneToMany(mappedBy = "product")
     @ToString.Exclude
     private List<CartItem> cartItems = new ArrayList<>();
@@ -76,6 +73,8 @@ public class Product {
         this.productStatus = productStatus;
     }
 
+    // 비지니스 로직
+
     public void updateProductInfo(String productName, String productCategory, int productQuantity, int productPrice,
             ProductStatus productStatus) {
         this.productName = productName;
@@ -85,7 +84,7 @@ public class Product {
         this.productStatus = productStatus;
     }
 
-    // 재고 감소를 위한 비즈니스 메소드
+    // 재고 감소 로직
     public void decreaseStock(int quantity) {
         int restStock = this.productQuantity - quantity;
         if (restStock < 0) {
@@ -96,5 +95,10 @@ public class Product {
 
     public boolean isStock(int quantity) {
         return this.productQuantity >= quantity;
+    }
+
+    // 논리적 삭제 로직
+    public void delete() {
+        this.productStatus = ProductStatus.DELETED;
     }
 }

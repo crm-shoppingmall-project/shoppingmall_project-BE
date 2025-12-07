@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,38 +16,6 @@ import java.time.LocalDateTime;
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CartItem {
-
-    public static CartItem createCartItem(Cart cart, Product product, int quantity) {
-        CartItem cartItem = new CartItem();
-        cartItem.cart = cart;
-        cartItem.product = product;
-        cartItem.cartItemQuantity = quantity;
-        cartItem.cartItemStatus = CartItemStatus.ACTIVE;
-        return cartItem;
-    }
-
-    public void addQuantity(int quantity) {
-        this.cartItemQuantity += quantity;
-    }
-
-    public void removeQuantity(int quantity) {
-        this.cartItemQuantity -= quantity;
-    }
-
-    public void updateQuantity(int quantity) {
-        this.cartItemQuantity = quantity;
-    }
-
-    public void updateCartItemStatus(CartItemStatus cartItemStatus) {
-        this.cartItemStatus = cartItemStatus;
-    }
-
-    // 삭제된 아이템 복구 로직
-    public void reactivate() {
-        if (this.cartItemStatus == CartItemStatus.REMOVED) {
-            this.cartItemStatus = CartItemStatus.ACTIVE;
-        }
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -73,5 +40,39 @@ public class CartItem {
 
     @Column(name = "cart_item_quantity")
     private int cartItemQuantity;
+
+    public static CartItem createCartItem(Cart cart, Product product, int quantity) {
+        CartItem cartItem = new CartItem();
+        cartItem.cart = cart;
+        cartItem.product = product;
+        cartItem.cartItemQuantity = quantity;
+        cartItem.cartItemStatus = CartItemStatus.ACTIVE;
+        return cartItem;
+    }
+
+    // --- 비즈니스 로직 ---
+
+    public void addQuantity(int quantity) {
+        this.cartItemQuantity += quantity;
+    }
+
+    public void removeQuantity(int quantity) {
+        this.cartItemQuantity -= quantity;
+    }
+
+    public void updateQuantity(int quantity) {
+        this.cartItemQuantity = quantity;
+    }
+
+    public void updateCartItemStatus(CartItemStatus cartItemStatus) {
+        this.cartItemStatus = cartItemStatus;
+    }
+
+    // 삭제된 아이템 복구 로직
+    public void reactivate() {
+        if (this.cartItemStatus == CartItemStatus.REMOVED) {
+            this.cartItemStatus = CartItemStatus.ACTIVE;
+        }
+    }
 
 }

@@ -38,7 +38,7 @@ public class Cart {
         return new Cart(member);
     }
 
-    // --- 비즈니스 로직 (DDD) ---
+    // --- 비즈니스 로직 ---
 
     // 상품 추가 (기존에 있으면 수량 증가, 없으면 생성)
     public void addItem(Product product, int quantity) {
