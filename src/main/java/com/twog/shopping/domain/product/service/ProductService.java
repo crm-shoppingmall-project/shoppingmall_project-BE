@@ -3,6 +3,7 @@ package com.twog.shopping.domain.product.service;
 import com.twog.shopping.domain.product.entity.Product;
 import com.twog.shopping.domain.product.repository.ProductRepository;
 import com.twog.shopping.domain.member.entity.UserRole;
+import com.twog.shopping.global.exception.ResourceNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -39,7 +40,8 @@ public class ProductService {
     @Transactional
     public ProductResponseDto updateProduct(int productId, ProductRequestDto requestDto) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("해당 상품을 찾을 수 없습니다."));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
         product.updateProductInfo(
                 requestDto.getProductName(),
@@ -55,7 +57,8 @@ public class ProductService {
     @Transactional
     public void deleteProduct(int productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("해당 상품을 찾을 수 없습니다."));
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
         // 논리적 삭제 수행
         product.delete();
