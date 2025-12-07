@@ -54,4 +54,8 @@ public class Campaign {
     public void deleteLogical() {
         this.campaignStatus = CampaignStatus.ENDED;
     }
+
+    public void end() {
+        this.campaignStatus = CampaignStatus.ENDED;
+    }
 }

@@ -142,8 +142,8 @@ public class PromotionService {
             pageNumber++;
         } while (memberPage.hasNext());
 
-        // 배치 완료 후 상태 변경 (Optional)
-        // campaign.complete();
+        // 배치 완료 후 상태 변경
+        campaign.end();
     }
 
     // 이메일 클릭 추적

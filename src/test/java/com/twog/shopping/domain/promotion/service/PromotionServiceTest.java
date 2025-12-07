@@ -167,6 +167,10 @@ class PromotionServiceTest {
         boolean hasLogForCampaign = logs.stream()
                 .anyMatch(log -> log.getCampaign().getCampaignId().equals(campaign.getCampaignId()));
         assertThat(hasLogForCampaign).isTrue();
+
+        // 캠페인 상태가 ENDED로 변경되었는지 확인
+        Campaign finishedCampaign = campaignRepository.findById(campaign.getCampaignId()).orElseThrow();
+        assertThat(finishedCampaign.getCampaignStatus()).isEqualTo(CampaignStatus.ENDED);
     }
 
     @Test

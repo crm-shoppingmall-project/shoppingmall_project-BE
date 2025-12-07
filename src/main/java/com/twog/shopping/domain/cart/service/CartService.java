@@ -156,13 +156,11 @@ public class CartService {
 
         for (CartDetailDto cartDetail : cartDetails) {
             Product product = productRepository.findById(cartDetail.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "해당 상품을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
             // 상품 상태 검증
             if (product.getProductStatus() == com.twog.shopping.domain.product.entity.ProductStatus.DELETED) {
-                throw new InvalidProductStatusException(
-                        "판매가 중단된 상품이 포함되어 있습니다. (" + product.getProductName() + ")");
+                throw new InvalidProductStatusException("판매가 중단된 상품이 포함되어 있습니다. (" + product.getProductName() + ")");
             }
 
             cart.updateItemQuantity(product, cartDetail.getCartQuantity());
