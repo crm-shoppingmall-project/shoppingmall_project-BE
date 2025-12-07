@@ -61,4 +61,15 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+    @ExceptionHandler(org.springframework.orm.ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, Object>> handleObjectOptimisticLockingFailureException(
+            org.springframework.orm.ObjectOptimisticLockingFailureException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.CONFLICT.value());
+        response.put("error", "Conflict");
+        response.put("message", "다른 사용자가 이미 데이터를 수정했습니다. 최신 데이터를 다시 불러와주세요.");
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
 }
