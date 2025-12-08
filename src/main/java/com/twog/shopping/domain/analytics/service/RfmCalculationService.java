@@ -7,6 +7,7 @@ import com.twog.shopping.domain.log.repository.HistoryRepository;
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,7 +57,6 @@ public class RfmCalculationService {
                     ? agg.getMonetary()
                     : BigDecimal.ZERO;
 
-            // 2) 기존 MemberRfm 있으면 업데이트, 없으면 새로 생성
             MemberRfm memberRfm = memberRfmRepository.findByMember(member)
                     .orElseGet(() -> MemberRfm.builder()
                             .member(member)
@@ -83,6 +83,7 @@ public class RfmCalculationService {
     }
 
     @Transactional
+    @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Seoul")
     public void calculateRfmScoresForToday(){
 
         calculateRfmForToday();
