@@ -19,11 +19,12 @@ public class Payment {
     @Column(name = "payment_id")
     private Long id;
 
+    // Purchase 엔티티와의 @OneToOne 관계 복원
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_id", nullable = false)
     private Purchase purchase;
 
-    @Column(name = "pg_tid", nullable = false, unique = true)
+    @Column(name = "pg_tid", nullable = false, unique = true, length = 20) // length 속성 유지
     private String pgTid;
 
     @Enumerated(EnumType.STRING)
@@ -51,5 +52,17 @@ public class Payment {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void setStatus(PaymentStatus newStatus) {
+        this.status = newStatus;
+    }
+
+    public void updatePgTid(String pgTid) {
+        this.pgTid = pgTid;
+    }
+
+    public void setPaidAt(LocalDateTime paidAt) {
+        this.paidAt = paidAt;
     }
 }
