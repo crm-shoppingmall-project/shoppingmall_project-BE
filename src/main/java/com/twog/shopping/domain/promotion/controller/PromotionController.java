@@ -1,13 +1,11 @@
 package com.twog.shopping.domain.promotion.controller;
 
-import com.twog.shopping.domain.member.service.DetailsUser;
 import com.twog.shopping.domain.promotion.dto.CampaignRequestDto;
 import com.twog.shopping.domain.promotion.dto.CampaignResponseDto;
 import com.twog.shopping.domain.promotion.service.PromotionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

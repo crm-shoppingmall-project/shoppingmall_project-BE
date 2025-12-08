@@ -1,6 +1,5 @@
 package com.twog.shopping.domain.promotion.dto;
 
-import com.twog.shopping.domain.promotion.entity.CampaignStatus;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

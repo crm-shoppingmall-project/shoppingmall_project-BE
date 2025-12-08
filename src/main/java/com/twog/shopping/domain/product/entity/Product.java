@@ -14,7 +14,6 @@ import java.util.List;
 @Entity
 @Table(name = "Product")
 @Getter
-// @Setter // 제거
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Product {

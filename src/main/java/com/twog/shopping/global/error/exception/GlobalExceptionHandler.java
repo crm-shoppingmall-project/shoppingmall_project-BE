@@ -2,6 +2,7 @@ package com.twog.shopping.global.error.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -51,7 +52,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    // 추가적인 예외 핸들러들을 여기에 등록할 수 있습니다.
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
         Map<String, Object> response = new HashMap<>();
@@ -62,9 +62,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 
-    @ExceptionHandler(org.springframework.orm.ObjectOptimisticLockingFailureException.class)
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<Map<String, Object>> handleObjectOptimisticLockingFailureException(
-            org.springframework.orm.ObjectOptimisticLockingFailureException ex) {
+            ObjectOptimisticLockingFailureException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("status", HttpStatus.CONFLICT.value());
         response.put("error", "Conflict");
