@@ -1,5 +1,6 @@
 package com.twog.shopping.global.config;
 
+import com.twog.shopping.domain.log.service.HistoryService;
 import com.twog.shopping.domain.member.service.MemberService;
 import com.twog.shopping.global.auth.filter.CustomAuthenticationFilter;
 import com.twog.shopping.global.auth.filter.JwtAuthorizationFilter;
@@ -7,6 +8,7 @@ import com.twog.shopping.global.auth.handler.CustomAuthFailureHandler;
 import com.twog.shopping.global.auth.handler.CustomAuthSuccessHandler;
 import com.twog.shopping.global.auth.handler.CustomAuthenticationProvider;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.security.autoconfigure.web.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +29,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
  *  Spring Security 핵심 설정 파일
  * 인증, 인가, 필터 설정 등을 포함하고 있다.
  * */
+@RequiredArgsConstructor
 @Configuration
 // @EnableMethodSecurity(securedEnabled = true) 어노테이션을 통해서
 // 컨트롤러에서 @PreAuthorize 또는 @PostAuthorize를 사용할 수 있다(메서드 단위 접근 제한 제어 가능)
@@ -34,10 +37,10 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 public class WebSecurityConfig {
 
     private final MemberService memberService;
+    private final HistoryService historyService;
+    private final CustomAuthSuccessHandler customAuthSuccessHandler;
+    private final CustomAuthFailureHandler customAuthFailureHandler;
 
-    public WebSecurityConfig(MemberService memberService) {
-        this.memberService = memberService;
-    }
 
     /**
      * description. 정적 자원에 대한 인증된 사용자의 접근을 설정하는 메소드
@@ -158,8 +161,8 @@ public class WebSecurityConfig {
         customAuthenticationFilter.setFilterProcessesUrl("/login");
 
         // 핸들러 등록
-        customAuthenticationFilter.setAuthenticationSuccessHandler(customAuthLoginSuccessHandler());
-        customAuthenticationFilter.setAuthenticationFailureHandler(customAuthLoginFailureHandler());
+        customAuthenticationFilter.setAuthenticationSuccessHandler(customAuthSuccessHandler);
+        customAuthenticationFilter.setAuthenticationFailureHandler(customAuthFailureHandler);
         customAuthenticationFilter.afterPropertiesSet();
         return customAuthenticationFilter;
     }
@@ -169,17 +172,17 @@ public class WebSecurityConfig {
      *
      * @return CustomAuthSuccessHandler
      */
-    private CustomAuthSuccessHandler customAuthLoginSuccessHandler() {
-        return new CustomAuthSuccessHandler();
-    }
+//    private CustomAuthSuccessHandler customAuthLoginSuccessHandler() {
+//        return new CustomAuthSuccessHandler();
+//    }
 
     /**
      * description. 사용자 정보가 맞지 않는 경우 (= 로그인 실패 시) 수행하는 핸들러를 반환하는 메소드
      *
      * @return CustomAuthFailureHandler
      */
-    private CustomAuthFailureHandler customAuthLoginFailureHandler() {
-        return new CustomAuthFailureHandler();
-    }
+//    private CustomAuthFailureHandler customAuthLoginFailureHandler() {
+//        return new CustomAuthFailureHandler();
+//    }
 
 }
