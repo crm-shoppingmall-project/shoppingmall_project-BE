@@ -32,7 +32,7 @@ public class RfmCalculationService {
 
         LocalDate today = LocalDate.now();
 
-        // RFM 집계 기간: 일단 최근 1년 기준 (원하면 조정 가능)
+        // RFM 집계 기간: 일단 최근 1년 기준
         LocalDateTime end = LocalDateTime.now();
         LocalDateTime start = end.minusYears(1);
 
@@ -77,5 +77,55 @@ public class RfmCalculationService {
 
             memberRfmRepository.save(memberRfm);
         }
+
+
+
+    }
+
+    @Transactional
+    public void calculateRfmScoresForToday(){
+
+        calculateRfmForToday();
+
+        LocalDateTime today = LocalDateTime.now();
+
+        List<MemberRfm> memberRfmList = memberRfmRepository.findAll();
+
+        for(MemberRfm r : memberRfmList){
+
+            int rScore = calculateRecencyScore(r.getRfmRecencyDays());
+            int fScore = calculateFrequencyScore(r.getRfmFrequency());
+            int mScore = calculateMonetaryScore(r.getRfmMonetary());
+
+            r.updateRfmScores(rScore, fScore, mScore);
+            memberRfmRepository.save(r);
+        }
+
+    }
+
+    private int calculateRecencyScore(int recencyDays) {
+        if (recencyDays <= 7) return 5;
+        if (recencyDays <= 30) return 4;
+        if (recencyDays <= 90) return 3;
+        if (recencyDays <= 180) return 2;
+        return 1;
+    }
+
+    private int calculateFrequencyScore(int frequency) {
+        if (frequency >= 20) return 5;
+        if (frequency >= 10) return 4;
+        if (frequency >= 5) return 3;
+        if (frequency >= 2) return 2;
+        return 1;
+    }
+
+    private int calculateMonetaryScore(BigDecimal monetary) {
+        if (monetary == null) monetary = BigDecimal.ZERO;
+
+        if (monetary.compareTo(new BigDecimal("1000000")) >= 0) return 5;
+        if (monetary.compareTo(new BigDecimal("500000")) >= 0) return 4;
+        if (monetary.compareTo(new BigDecimal("200000")) >= 0) return 3;
+        if (monetary.compareTo(new BigDecimal("50000")) >= 0) return 2;
+        return 1;
     }
 }
