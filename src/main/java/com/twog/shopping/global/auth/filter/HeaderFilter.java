@@ -20,6 +20,8 @@ public class HeaderFilter implements Filter {
         res.setHeader("Access-Control-Allow-Headers",
                 "X-Requested-With, Content-Type, Authorization, X-XSRF-token");     // 요청 시에 허용할 header 타입
         res.setHeader("Access-Control-Allow-Credentials", "false");               // 자격 증명을 허용할 것인가?
+        res.setCharacterEncoding("UTF-8");
+        res.setContentType("application/json; charset=utf-8");
 
         filterChain.doFilter(servletRequest, res);
     }
