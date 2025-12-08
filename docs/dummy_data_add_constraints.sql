@@ -433,77 +433,78 @@ DROP PROCEDURE generate_rfm_data;
 
 DELIMITER $$
 
-CREATE PROCEDURE generate_history_logs(IN p_rows INT)
+CREATE PROCEDURE generate_history_logs()
 BEGIN
     DECLARE i INT DEFAULT 1;
-    DECLARE v_ref_tbl_name VARCHAR(30);
-    DECLARE v_category_name VARCHAR(10);
-    DECLARE v_action_type_name VARCHAR(30);
+    DECLARE v_action_type VARCHAR(30);
+    DECLARE v_action_category VARCHAR(10);
     DECLARE v_member_id BIGINT;
+    DECLARE v_ref_tbl VARCHAR(30);
     DECLARE v_ref_id BIGINT;
 
-    WHILE i <= p_rows DO
+    WHILE i <= 600 DO
 
-            -- 1) 행동 주체(회원)
-            SET v_member_id = FLOOR(1 + RAND()*90);
+            -- 1) 행동 주체(회원) 임의 선택
+            SET v_member_id = FLOOR(1 + RAND()*90);   -- member_id 1~90 가정
 
-            -- 2) 카테고리 선택
-            SET v_category_name = ELT(
+            -- 2) 카테고리 랜덤 선택 (AUTH, VIEW, ENGAGE, PURCHASE, CS, SYSTEM)
+            SET v_action_category = ELT(
                     FLOOR(1 + RAND()*6),
                     'AUTH', 'VIEW', 'ENGAGE', 'PURCHASE', 'CS', 'SYSTEM'
-                                  );
+                                    );
 
-            -- 3) 카테고리별 action/ref_tbl/ref_id 매핑
-            CASE v_category_name
+            -- 3) 카테고리별 action_type / ref_tbl / ref_id 설정
+            CASE v_action_category
                 WHEN 'AUTH' THEN
-                    SET v_ref_tbl_name = 'member';
-                    SET v_action_type_name = ELT(
-                            FLOOR(1 + RAND()*2),
-                            'login_success',
-                            'logout_attempt'
-                                             );
+                    SET v_ref_tbl = 'member';
+                    SET v_action_type = ELT(
+                            FLOOR(1 + RAND()*3),
+                            'LOGIN',
+                            'LOGOUT',
+                            'SIGNUP'
+                                        );
                     SET v_ref_id = v_member_id;
 
                 WHEN 'VIEW' THEN
-                    SET v_ref_tbl_name = 'product';
-                    SET v_action_type_name = ELT(
+                    SET v_ref_tbl = 'product';
+                    SET v_action_type = ELT(
                             FLOOR(1 + RAND()*2),
-                            'view_product',
-                            'view_home'
-                                             );
-                    SET v_ref_id = FLOOR(1 + RAND()*500);
+                            'VIEW_PRODUCT',
+                            'VIEW_HOME'
+                                        );
+                    SET v_ref_id = FLOOR(1 + RAND()*500);  -- product_id 1~500 가정
 
                 WHEN 'ENGAGE' THEN
-                    SET v_ref_tbl_name = 'cart_item';
-                    SET v_action_type_name = ELT(
+                    SET v_ref_tbl = 'cart_item';
+                    SET v_action_type = ELT(
                             FLOOR(1 + RAND()*2),
-                            'add_to_cart',
-                            'add_to_wishlist'
-                                             );
-                    SET v_ref_id = FLOOR(1 + RAND()*1000);
+                            'ADD_TO_CART',
+                            'REMOVE_FROM_CART'
+                                        );
+                    SET v_ref_id = FLOOR(1 + RAND()*1000); -- cart_item_id 1~1000 가정
 
                 WHEN 'PURCHASE' THEN
-                    SET v_ref_tbl_name = 'purchase';
-                    SET v_action_type_name = ELT(
+                    SET v_ref_tbl = 'purchase';
+                    SET v_action_type = ELT(
                             FLOOR(1 + RAND()*3),
-                            'payment_success',
-                            'refund_complete',
-                            'order_placed'
-                                             );
-                    SET v_ref_id = FLOOR(1 + RAND()*500);
+                            'ORDER_PLACED',
+                            'PAYMENT_SUCCESS',
+                            'REFUND_COMPLETE'
+                                        );
+                    SET v_ref_id = FLOOR(1 + RAND()*500);  -- purchase_id 1~500 가정
 
                 WHEN 'CS' THEN
-                    SET v_ref_tbl_name = 'cs_ticket';
-                    SET v_action_type_name = ELT(
+                    SET v_ref_tbl = 'cs_ticket';
+                    SET v_action_type = ELT(
                             FLOOR(1 + RAND()*2),
-                            'cs_ticket_created',
-                            'cs_ticket_closed'
-                                             );
-                    SET v_ref_id = FLOOR(1 + RAND()*300);
+                            'CS_TICKET_CREATED',
+                            'CS_TICKET_CLOSED'
+                                        );
+                    SET v_ref_id = FLOOR(1 + RAND()*300);  -- cs_ticket_id 1~300 가정
 
                 ELSE -- SYSTEM
-                SET v_ref_tbl_name = NULL;
-                SET v_action_type_name = 'system_update';
+                SET v_ref_tbl = NULL;
+                SET v_action_type = 'SYSTEM_UPDATE';
                 SET v_ref_id = NULL;
                 END CASE;
 
@@ -511,25 +512,29 @@ BEGIN
             INSERT INTO `History` (
                 `history_datetime`,
                 `history_action_type`,
+                `history_action_category`,
                 `history_member_id`,
                 `history_detail`,
                 `history_ip_address`,
                 `history_ref_tbl`,
-                `history_action_category`,
                 `history_ref_id`
             )
             VALUES (
-                       NOW() - INTERVAL FLOOR(RAND()*10000) MINUTE,
-                       v_action_type_name,
+                       NOW() - INTERVAL FLOOR(RAND()*10000) MINUTE,  -- 과거 랜덤 시간
+                       v_action_type,
+                       v_action_category,
                        v_member_id,
                        JSON_OBJECT(
                                'log_index', i,
                                'status', ELT(FLOOR(1 + RAND()*3), 'success', 'fail', 'pending'),
-                               'amount', IF(v_category_name = 'PURCHASE', FLOOR(RAND()*100000), NULL)
+                               'amount', IF(v_action_category = 'PURCHASE',
+                                            FLOOR(1000 + RAND()*300000),  -- RFM용 금액
+                                            NULL),
+                               'ref_tbl', v_ref_tbl,
+                               'ref_id', v_ref_id
                        ),
                        CONCAT('192.168.1.', FLOOR(1 + RAND()*254)),
-                       v_ref_tbl_name,
-                       v_category_name,
+                       v_ref_tbl,
                        v_ref_id
                    );
 
@@ -539,8 +544,9 @@ END$$
 
 DELIMITER ;
 
-CALL generate_history_logs(10000);
+CALL generate_history_logs();
 DROP PROCEDURE generate_history_logs;
+
 
 
 -- =======================================================
