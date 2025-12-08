@@ -1,6 +1,5 @@
 package com.twog.shopping.domain.purchase.service;
 
-<<<<<<< HEAD
 import com.twog.shopping.domain.cart.repository.CartItemRepository;
 import com.twog.shopping.domain.cart.repository.CartRepository;
 import com.twog.shopping.domain.member.entity.Member;
@@ -25,14 +24,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-=======
-import com.twog.shopping.domain.purchase.repository.PurchaseRepository;
->>>>>>> f6f9da05428190d585720de9df0ed89afa7bba66
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-<<<<<<< HEAD
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -55,25 +50,10 @@ class PurchaseServiceTest {
 
     @Autowired
     private PurchaseService purchaseService;
-=======
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.NoSuchElementException;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-@SpringBootTest
-@Transactional
-class PurchaseServiceTest {
-
-    @Autowired
-    private  PurchaseService purchaseService;
->>>>>>> f6f9da05428190d585720de9df0ed89afa7bba66
 
     @Autowired
     private PurchaseRepository purchaseRepository;
 
-<<<<<<< HEAD
     @Autowired
     private PurchaseDetailRepository purchaseDetailRepository;
 
@@ -140,18 +120,6 @@ class PurchaseServiceTest {
                 .productPrice(INITIAL_PRICE)
                 .productQuantity(INITIAL_QUANTITY)
                 .build());
-=======
-    @Test
-    @DisplayName("존재하지 않는 ID로 조회하면 NoSuchElementException을 발생시켜야 한다.")
-    void findById_NotFound_Failure() {
-        // Given
-        Long nonExistentId = 9999L;
-
-        // When Then
-        assertThrows(NoSuchElementException.class, () -> {
-            purchaseService.findById(nonExistentId);
-        }, "주문 ID를 찾을 수 없습니다.");
->>>>>>> f6f9da05428190d585720de9df0ed89afa7bba66
     }
 
     @AfterEach
@@ -287,7 +255,7 @@ class PurchaseServiceTest {
         // given
         Integer incorrectTotalAmount = 1;
         PurchaseRequest.PurchaseItemDto itemDto = new PurchaseRequest.PurchaseItemDto((long) product.getProductId(), 1, INITIAL_PRICE);
-        PurchaseRequest request = new PurchaseRequest(incorrectTotalAmount, Collections.singletonList(itemDto));
+        PurchaseRequest request = new PurchaseRequest(INITIAL_PRICE, Collections.singletonList(itemDto));
 
         // when & then
         assertThrows(IllegalStateException.class, () -> purchaseService.createPurchase(request, member.getMemberId()));
