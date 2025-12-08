@@ -5,8 +5,8 @@ import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.domain.promotion.dto.CampaignRequestDto;
 import com.twog.shopping.domain.promotion.dto.CampaignResponseDto;
 import com.twog.shopping.domain.promotion.entity.*;
-import com.twog.shopping.global.error.exception.PromotionException;
 import com.twog.shopping.domain.promotion.repository.*;
+import com.twog.shopping.global.error.exception.PromotionException;
 import com.twog.shopping.global.error.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -130,7 +130,7 @@ public class PromotionService {
 
             // 통합 히스토리 저장
             History history = History.builder()
-                    .historyActionType(History.HistoryActionType.UPDATE) // 적절한 타입 사용
+                    .historyActionType(History.HistoryActionType.UPDATE)
                     .historyMemberId(0L) // 시스템 작업을 의미
                     .historyRefTbl(History.HistoryRefTable.Segment) // 관련 테이블
                     .historyDetail("Campaign Batch Executed: " + campaign.getCampaignName() + " (" + logsToSave.size()

@@ -72,7 +72,7 @@ public class Cart {
         }
     }
 
-    // 상품 삭제 (Soft Delete)
+    // 상품 삭제 (Soft Delete - CartItemStatus.REMOVED)
     public void removeItem(Product product) {
         CartItem item = findCartItem(product);
         if (item != null) {
