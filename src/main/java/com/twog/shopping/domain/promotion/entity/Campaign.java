@@ -1,12 +1,8 @@
 package com.twog.shopping.domain.promotion.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
-import lombok.Builder; // Added import
 import java.time.LocalDateTime;
 
 @Entity

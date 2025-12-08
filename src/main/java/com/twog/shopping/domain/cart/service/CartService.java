@@ -9,6 +9,7 @@ import com.twog.shopping.domain.cart.repository.CartRepository;
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.domain.product.entity.Product;
+import com.twog.shopping.domain.product.entity.ProductStatus;
 import com.twog.shopping.domain.product.repository.ProductRepository;
 import com.twog.shopping.global.error.exception.InvalidProductStatusException;
 import com.twog.shopping.global.error.exception.ResourceNotFoundException;
@@ -34,8 +35,7 @@ public class CartService {
         return cartRepository.findByMember_MemberId(memberId)
                 .orElseGet(() -> {
                     Member member = memberRepository.findById((long) memberId)
-                            .orElseThrow(() -> new ResourceNotFoundException(
-                                    "해당 회원을 찾을 수 없습니다."));
+                            .orElseThrow(() -> new ResourceNotFoundException("해당 회원을 찾을 수 없습니다."));
                     Cart newCart = Cart.createCart(member);
                     return cartRepository.save(newCart);
                 });
@@ -52,8 +52,7 @@ public class CartService {
     @Transactional(readOnly = true)
     public List<CartItem> getCartItemsByMemberId(int memberId) {
         Cart cart = cartRepository.findByMember_MemberId(memberId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "해당 회원의 장바구니를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 회원의 장바구니를 찾을 수 없습니다."));
         return cart.getCartItems();
     }
 
@@ -70,11 +69,10 @@ public class CartService {
     public void addItemToCart(int memberId, int productId, int quantity) {
         Cart memberCart = findOrCreateCartByMemberId(memberId);
         Product product = productRepository.findById(productId)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
         // 상품 상태 검증
-        if (product.getProductStatus() == com.twog.shopping.domain.product.entity.ProductStatus.DELETED) {
+        if (product.getProductStatus() ==  ProductStatus.DELETED) {
             throw new InvalidProductStatusException("판매가 중단된 상품입니다.");
         }
 
@@ -86,8 +84,7 @@ public class CartService {
     public void removeItemFromCart(int memberId, int productId) {
         Cart memberCart = findOrCreateCartByMemberId(memberId);
         Product product = productRepository.findById(productId)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
         memberCart.removeItem(product);
     }
@@ -97,11 +94,10 @@ public class CartService {
     public void updateCartItemQuantity(int memberId, int productId, int quantity) {
         Cart memberCart = findOrCreateCartByMemberId(memberId);
         Product product = productRepository.findById(productId)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
         // 상품 상태 검증 (수량 변경 시에도 유효하지 않은 상품이면 차단)
-        if (product.getProductStatus() == com.twog.shopping.domain.product.entity.ProductStatus.DELETED) {
+        if (product.getProductStatus() ==  ProductStatus.DELETED) {
             throw new InvalidProductStatusException("판매가 중단된 상품입니다.");
         }
 
@@ -121,14 +117,13 @@ public class CartService {
                     boolean isOrderable = product.isStock(cartQuantity);
 
                     // 삭제된 상품인 경우 주문 불가 처리
-                    if (product.getProductStatus() == com.twog.shopping.domain.product.entity.ProductStatus.DELETED) {
+                    if (product.getProductStatus() ==  ProductStatus.DELETED) {
                         isOrderable = false;
                     }
 
                     String message = null;
                     if (!isOrderable) {
-                        if (product
-                                .getProductStatus() == com.twog.shopping.domain.product.entity.ProductStatus.DELETED) {
+                        if (product.getProductStatus() == ProductStatus.DELETED) {
                             message = "판매가 중단된 상품입니다.";
                         } else {
                             message = "재고가 부족하여 주문할 수 없습니다. (현재 재고: " + currentStock + ")";
@@ -159,7 +154,7 @@ public class CartService {
                     .orElseThrow(() -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
             // 상품 상태 검증
-            if (product.getProductStatus() == com.twog.shopping.domain.product.entity.ProductStatus.DELETED) {
+            if (product.getProductStatus() == ProductStatus.DELETED) {
                 throw new InvalidProductStatusException("판매가 중단된 상품이 포함되어 있습니다. (" + product.getProductName() + ")");
             }
 

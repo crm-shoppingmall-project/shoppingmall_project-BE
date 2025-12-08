@@ -40,8 +40,7 @@ public class ProductService {
     @Transactional
     public ProductResponseDto updateProduct(int productId, ProductRequestDto requestDto) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
         product.updateProductInfo(
                 requestDto.getProductName(),
