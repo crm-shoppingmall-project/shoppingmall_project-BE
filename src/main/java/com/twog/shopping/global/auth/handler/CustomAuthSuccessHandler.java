@@ -1,6 +1,8 @@
 package com.twog.shopping.global.auth.handler;
 
 
+import com.twog.shopping.domain.log.entity.HistoryActionType;
+import com.twog.shopping.domain.log.service.HistoryService;
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.service.DetailsUser;
 import com.twog.shopping.global.common.AuthConstants;
@@ -9,26 +11,34 @@ import com.twog.shopping.global.common.utils.TokenUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Map;
 
 /*
  * 로그인 성공 시 동작하는 핸들러 (JWT 토큰 발급 및 응답 처리)
  * */
-@Configuration
+@Component
+@RequiredArgsConstructor
 public class CustomAuthSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
+
+    private final HistoryService historyService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
 
         // 1. 요청 사용자 정보 가져오기
         Member member = ((DetailsUser) authentication.getPrincipal()).getMember();
+        Long memberId = member.getMemberId();
 
         // 2. User 엔티티를 JSON 객체로 변환
         JSONObject jsonValue = (JSONObject) ConvertUtil.convertObjectToJsonObject(member);
@@ -41,6 +51,7 @@ public class CustomAuthSuccessHandler extends SavedRequestAwareAuthenticationSuc
             // 휴면 계정인 경우 토큰을 발급하지 않고 메시지만 전달
             responseMap.put("userInfo", jsonValue);
             responseMap.put("message", "휴면 상태의 계정입니다.");
+
         } else {
             // 정상 계정인 경우 JWT 토큰 생성
             String token = TokenUtils.generateJwtToken(member);
@@ -48,6 +59,18 @@ public class CustomAuthSuccessHandler extends SavedRequestAwareAuthenticationSuc
             responseMap.put("message", "로그인 성공입니다.");
 
             response.addHeader(AuthConstants.AUTH_HEADER, AuthConstants.TOKEN_TYPE + " " + token);
+
+            historyService.saveHistory(
+                    memberId,
+                    HistoryActionType.LOGIN_SUCCESS,
+                    Map.of(
+                            "message","로그인 성공",
+                            "email",member.getMemberEmail()
+                    ),
+                    request,
+                    null,
+                    null
+            );
         }
 
         // 4. 클라이언트로 응답 전송

@@ -1,8 +1,12 @@
 package com.twog.shopping.global.auth.handler;
 
+import com.twog.shopping.domain.log.entity.HistoryActionType;
+import com.twog.shopping.domain.log.entity.HistoryRefTable;
+import com.twog.shopping.domain.log.service.HistoryService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.AuthenticationException;
@@ -13,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -21,8 +26,12 @@ import java.util.HashMap;
 /*
  *  로그인 실패 시 클라이언트에게 실패 원인을 JSON으로 응답하는 핸들러
  * */
+
 @Component
+@RequiredArgsConstructor
 public class CustomAuthFailureHandler implements AuthenticationFailureHandler {
+
+    private final HistoryService historyService;
 
     /**
      * 사용자의 잘못된 로그인 시도를 커스텀 하기 위한 핸들러 메소드
@@ -71,6 +80,26 @@ public class CustomAuthFailureHandler implements AuthenticationFailureHandler {
         } else {
             failMsg = "정의되지 않은 케이스의 오류입니다. 관리자에게 문의해 주세요.";
         }
+
+        String email = request.getParameter("email");
+        Map<String, Object> detail = Map.of(
+                "email",email,
+                "failMessage",failMsg,
+                "exception",exception.getClass().getSimpleName()
+        );
+
+
+
+        historyService.saveHistory(
+                null,
+                HistoryActionType.LOGIN_FAIL,
+                detail,
+                request,
+                null,
+                null
+
+
+        );
 
         // map타입으로 만들어서 스트림 내보내기를 해준 내용이다.
         HashMap<String, Object> resultMap = new HashMap<>();

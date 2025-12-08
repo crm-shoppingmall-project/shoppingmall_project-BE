@@ -80,11 +80,18 @@ PRIMARY KEY (payment_id)
 CREATE TABLE History (
 history_id BIGINT NOT NULL AUTO_INCREMENT,
 history_datetime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-history_action_type ENUM('CREATE','UPDATE','DELETE','LOGIN','LOGOUT','PAID','REFUND') NOT NULL,
+history_action_type VARCHAR(50) NOT NULL,
+history_action_category ENUM('AUTH','VIEW','ENGAGE','PURCHASE','CS','SYSTEM') NOT NULL,
 history_member_id BIGINT NOT NULL,
-history_detail TEXT NULL,
+history_detail JSON NOT NULL,
 history_ip_address VARCHAR(100) NOT NULL,
-history_ref_tbl ENUM('Member','Purchase','Segment','CS_ticket','Product','Return_request','CART_ITEM') NOT NULL,
+history_ref_tbl ENUM(
+    'campaign', 'cart', 'cart_item', 'cs_ticket',
+    'member', 'payment', 'product', 'purchase',
+    'return_request', 'review', 'segment'
+    ) NULL,
+history_ref_id BIGINT NULL,
+history_user_agent VARCHAR(512) NULL,
 PRIMARY KEY (history_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
