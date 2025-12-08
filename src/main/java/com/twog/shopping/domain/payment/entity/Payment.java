@@ -52,4 +52,16 @@ public class Payment {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void setStatus(PaymentStatus newStatus) {
+        this.status = newStatus;
+    }
+
+    public void updatePgTid(String pgTid) {
+        this.pgTid = pgTid;
+    }
+
+    public void setPaidAt(LocalDateTime paidAt) {
+        this.paidAt = paidAt;
+    }
 }

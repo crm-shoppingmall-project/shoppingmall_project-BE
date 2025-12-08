@@ -3,8 +3,6 @@ package com.twog.shopping.domain.purchase.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
-
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
@@ -28,8 +26,8 @@ public class PurchaseDetail {
     @Column(name = "product_quantity", nullable = false)
     private Integer quantity;
 
-    @Column(name = "purchase_paid_amount", nullable = false, precision = 10, scale = 2)
-    private BigDecimal paidAmount;
+    @Column(name = "purchase_paid_amount", nullable = false)
+    private int paidAmount; // BigDecimal -> int
 
     public void setPurchase(Purchase purchase) {
         this.purchase = purchase;
