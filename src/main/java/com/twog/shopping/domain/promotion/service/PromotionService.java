@@ -1,12 +1,18 @@
 package com.twog.shopping.domain.promotion.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.twog.shopping.domain.log.entity.History;
+import com.twog.shopping.domain.log.entity.HistoryActionType;
+import com.twog.shopping.domain.log.entity.HistoryRefTable;
+import com.twog.shopping.domain.log.repository.HistoryRepository;
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.domain.promotion.dto.CampaignRequestDto;
 import com.twog.shopping.domain.promotion.dto.CampaignResponseDto;
 import com.twog.shopping.domain.promotion.entity.*;
-import com.twog.shopping.domain.promotion.repository.*;
 import com.twog.shopping.global.error.exception.PromotionException;
+import com.twog.shopping.domain.promotion.repository.*;
 import com.twog.shopping.global.error.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +37,7 @@ public class PromotionService {
     private final MessageSendLogRepository messageSendLogRepository;
     private final HistoryRepository historyRepository;
     private final MemberRepository memberRepository;
+    private final ObjectMapper objectMapper;
 
     // 캠페인 생성
     @Transactional
@@ -128,15 +137,39 @@ public class PromotionService {
             // 로그 저장 (Bulk Insert 효과)
             messageSendLogRepository.saveAll(logsToSave);
 
+            Map<String, Object> detail = new LinkedHashMap<>();
+            detail.put("event", "CAMPAIGN_BATCH_EXECUTED");
+            detail.put("campaign_id", campaign.getCampaignId());
+            detail.put("campaign_name", campaign.getCampaignName());
+            detail.put("batch_size", logsToSave.size());          // 이번 페이지에서 보낸 유저 수
+            detail.put("sent_member_ids",
+                    memberPage.getContent().stream()
+                            .map(Member::getMemberId)
+                            .toList()
+            );
+
+            String detailJson;
+            try {
+                detailJson = objectMapper.writeValueAsString(detail);
+            } catch (JsonProcessingException e) {
+                // 문제가 생겨도 최소 텍스트는 남기고 싶다면
+                detailJson = String.format(
+                        "{\"event\":\"CAMPAIGN_BATCH_EXECUTED\",\"campaign_id\":%d,\"error\":\"json_error\"}",
+                        campaign.getCampaignId()
+                );
+            }
+
             // 통합 히스토리 저장
-            History history = History.builder()
-                    .historyActionType(History.HistoryActionType.UPDATE)
-                    .historyMemberId(0L) // 시스템 작업을 의미
-                    .historyRefTbl(History.HistoryRefTable.Segment) // 관련 테이블
-                    .historyDetail("Campaign Batch Executed: " + campaign.getCampaignName() + " (" + logsToSave.size()
-                            + " users)")
-                    .historyIpAddress("SYSTEM_BATCH")
-                    .build();
+            History history = History.create(
+                    HistoryActionType.SYSTEM_UPDATE,   // actionType
+                    0L,                                // memberId (SYSTEM)
+                    detailJson,                        // JSON detail
+                    "SYSTEM_BATCH",                    // ipAddress
+                    HistoryRefTable.campaign,          // refTable
+                    campaign.getCampaignId(),          // refId (연결 PK)
+                    "SYSTEM_BATCH"                     // userAgent
+            );
+
             historyRepository.save(history);
 
             pageNumber++;

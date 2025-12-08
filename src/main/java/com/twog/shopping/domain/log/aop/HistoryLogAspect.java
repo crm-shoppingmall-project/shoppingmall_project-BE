@@ -1,6 +1,7 @@
 package com.twog.shopping.domain.log.aop;
 
 import com.twog.shopping.domain.log.entity.HistoryActionType;
+import com.twog.shopping.domain.log.entity.HistoryRefTable;
 import com.twog.shopping.domain.log.service.HistoryService;
 import com.twog.shopping.domain.member.service.DetailsUser;
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,9 +55,11 @@ public class HistoryLogAspect {
         detail.put("method", joinPoint.getSignature().toShortString());
         detail.put("path", request.getRequestURI());
 
+        Long refId = null;
+
         if (actionType == HistoryActionType.PURCHASE_COMPLETED) {
 
-            extractPurchaseInfo(result,detail);
+           refId =  extractPurchaseInfo(result,detail);
 
         }
 
@@ -64,7 +67,10 @@ public class HistoryLogAspect {
                 memberId,
                 actionType,
                 detail,
-                request
+                request,
+                HistoryRefTable.purchase,
+                refId
+
         );
 
 
@@ -87,8 +93,8 @@ public class HistoryLogAspect {
 
     }
 
-    private void extractPurchaseInfo(Object result, Map<String, Object> detail) {
-        if (result == null) return;
+    private Long extractPurchaseInfo(Object result, Map<String, Object> detail) {
+        if (result == null) return null;
 
         try {
             Class<?> clazz = result.getClass();
@@ -101,8 +107,11 @@ public class HistoryLogAspect {
             Object paidAmount = getAmount.invoke(result);
             detail.put("paidAmount", paidAmount);
 
+            return (Long) purchaseId;
+
         } catch (Exception e) {
             log.debug("[HistoryLogAspect] 결과에서 구매 정보를 추출하는 데 실패했습니다.: {}", e.getMessage());
+            return null;
         }
 
 
