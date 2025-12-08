@@ -238,7 +238,7 @@ class PaymentServiceTest {
     @Test
     @DisplayName("ID로 결제 조회 성공")
     void getPaymentById_Success() {
-
+        // payment의 상태를 COMPLETED로 변경하여 조회 테스트에 적합하게 만듦
         payment.setStatus(PaymentStatus.COMPLETED);
         payment.setPaidAt(LocalDateTime.now());
         when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
@@ -265,7 +265,7 @@ class PaymentServiceTest {
     @DisplayName("회원 ID로 결제 목록 조회 성공")
     void getPaymentsByMemberId_Success() {
         Pageable pageable = PageRequest.of(0, 10);
-
+        // payment의 상태를 COMPLETED로 변경하여 조회 테스트에 적합하게 만듦
         payment.setStatus(PaymentStatus.COMPLETED);
         payment.setPaidAt(LocalDateTime.now());
         List<Payment> payments = Arrays.asList(payment);

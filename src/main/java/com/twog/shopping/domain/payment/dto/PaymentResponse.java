@@ -1,6 +1,5 @@
 package com.twog.shopping.domain.payment.dto;
 
-<<<<<<< HEAD
 import com.twog.shopping.domain.payment.entity.Payment;
 import com.twog.shopping.domain.payment.entity.PaymentStatus;
 import com.twog.shopping.domain.payment.entity.PaymentType;
@@ -33,24 +32,4 @@ public class PaymentResponse {
                 .updatedAt(payment.getUpdatedAt())
                 .build();
     }
-=======
-import lombok.Builder;
-import lombok.Getter;
-
-@Getter
-@Builder
-public class PaymentResponse {
-
-    private String status;
-
-    private  String message;
-
-    private Long purchaseId;
-
-    private Long amount;
-
-    private String pgTid;
-
-    private String paymentKey;
->>>>>>> f6f9da05428190d585720de9df0ed89afa7bba66
 }

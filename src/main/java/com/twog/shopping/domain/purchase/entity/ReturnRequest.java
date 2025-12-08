@@ -27,10 +27,9 @@ public class ReturnRequest {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "request_status", nullable = false)
-    private ReturnRequestStatus requestStatus; // ENUM('REQUESTED','REJECTED','COMPLETED')
+    private ReturnRequestStatus requestStatus;
 
     @Column(name = "request_processed")
     private LocalDateTime requestProcessed;
 
-    // ReturnRequestStatus Enum도 필요합니다.
 }

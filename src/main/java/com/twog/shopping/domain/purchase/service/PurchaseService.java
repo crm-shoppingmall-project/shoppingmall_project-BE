@@ -1,17 +1,12 @@
 package com.twog.shopping.domain.purchase.service;
 
-<<<<<<< HEAD
 import com.twog.shopping.domain.product.entity.Product;
 import com.twog.shopping.domain.product.repository.ProductRepository;
-=======
-import com.twog.shopping.domain.product.service.ProductService;
->>>>>>> f6f9da05428190d585720de9df0ed89afa7bba66
 import com.twog.shopping.domain.purchase.dto.PurchaseRequest;
 import com.twog.shopping.domain.purchase.dto.PurchaseResponse;
 import com.twog.shopping.domain.purchase.entity.Purchase;
 import com.twog.shopping.domain.purchase.entity.PurchaseDetail;
 import com.twog.shopping.domain.purchase.entity.PurchaseStatus;
-import com.twog.shopping.domain.purchase.repository.PurchaseDetailRepository;
 import com.twog.shopping.domain.purchase.repository.PurchaseRepository;
 import com.twog.shopping.global.error.exception.OutOfStockException;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +24,6 @@ import java.util.Objects;
 public class PurchaseService {
 
     private final PurchaseRepository purchaseRepository;
-<<<<<<< HEAD
     private final ProductRepository productRepository;
 
     @Transactional
@@ -70,14 +64,6 @@ public class PurchaseService {
         }
 
         return purchase.getId();
-=======
-    private final PurchaseDetailRepository purchaseDetailRepository;
-    // private final ProductService productService;
-
-    public Purchase findById(Long purchaseId) {
-        return purchaseRepository.findById(purchaseId)
-                .orElseThrow(() -> new NoSuchElementException("주문 ID: " + purchaseId + "을 찾을 수 없습니다."));
->>>>>>> f6f9da05428190d585720de9df0ed89afa7bba66
     }
 
     public Page<PurchaseResponse> findMyPurchases(Long memberId, Pageable pageable) {
@@ -115,21 +101,14 @@ public class PurchaseService {
     public Integer calculateTotalAmount(Long purchaseId) { // BigDecimal -> Integer
         Purchase purchase = findById(purchaseId);
 
-<<<<<<< HEAD
         return purchase.getDetails().stream()
                 .mapToInt(detail -> detail.getPaidAmount() * detail.getQuantity()) // BigDecimal -> int
                 .sum(); // reduce(BigDecimal.ZERO, BigDecimal::add) -> sum()
     }
-=======
-        BigDecimal total = purchase.getDetails().stream()
-                .map(detail -> detail.getPaidAmount().multiply(new BigDecimal(detail.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
->>>>>>> f6f9da05428190d585720de9df0ed89afa7bba66
 
-        if (total.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalStateException("주문 ID: " + purchaseId + "의 총 금액이 0원 이하 입니다.");
-        }
-        return total;
+    public Purchase findById(Long purchaseId) {
+        return purchaseRepository.findById(purchaseId)
+                .orElseThrow(() -> new NoSuchElementException("주문 정보를 찾을 수 없습니다. (ID: " + purchaseId + ")"));
     }
 
     private Purchase findAndValidateOwner(Long purchaseId, Long memberId) {

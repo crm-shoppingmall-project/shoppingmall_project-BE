@@ -1,27 +1,18 @@
 package com.twog.shopping.domain.purchase.dto;
 
-<<<<<<< HEAD
 import com.twog.shopping.domain.purchase.entity.Purchase;
 import com.twog.shopping.domain.purchase.entity.PurchaseDetail;
-=======
->>>>>>> f6f9da05428190d585720de9df0ed89afa7bba66
 import com.twog.shopping.domain.purchase.entity.PurchaseStatus;
 import lombok.Builder;
 import lombok.Getter;
 
-<<<<<<< HEAD
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-=======
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
->>>>>>> f6f9da05428190d585720de9df0ed89afa7bba66
 
 @Getter
 @Builder
 public class PurchaseResponse {
-<<<<<<< HEAD
     private Long purchaseId;
     private Long memberId;
     private PurchaseStatus status;
@@ -64,16 +55,3 @@ public class PurchaseResponse {
                 .build();
     }
 }
-=======
-
-    private Long purchaseId;
-
-    private PurchaseStatus status;
-
-    private BigDecimal amount;
-
-    private LocalDateTime purchaseDate;
-
-    private String message;
-}
->>>>>>> f6f9da05428190d585720de9df0ed89afa7bba66

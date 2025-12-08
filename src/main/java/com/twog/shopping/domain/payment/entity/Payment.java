@@ -19,10 +19,12 @@ public class Payment {
     @Column(name = "payment_id")
     private Long id;
 
-    @Column(name = "purchase_id", nullable = false)
-    private Long purchaseId;
+    // Purchase 엔티티와의 @OneToOne 관계 복원
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "purchase_id", nullable = false)
+    private Purchase purchase;
 
-    @Column(name = "pg_tid", nullable = false, unique = true, length = 20)
+    @Column(name = "pg_tid", nullable = false, unique = true, length = 20) // length 속성 유지
     private String pgTid;
 
     @Enumerated(EnumType.STRING)
