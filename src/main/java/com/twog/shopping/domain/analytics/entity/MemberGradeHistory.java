@@ -2,6 +2,7 @@ package com.twog.shopping.domain.analytics.entity;
 
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.entity.MemberGrade;
+import com.twog.shopping.global.common.entity.GradeName;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,10 +30,10 @@ public class MemberGradeHistory {
     private MemberGrade grade;
 
     @Column(name = "history_before", nullable = false, length = 20)
-    private String historyBefore;
+    private GradeName historyBefore;
 
     @Column(name = "history_after", nullable = false, length = 20)
-    private String historyAfter;
+    private GradeName historyAfter;
 
     @Column(name = "history_changed", nullable = false)
     private LocalDateTime historyChanged;
@@ -40,8 +41,8 @@ public class MemberGradeHistory {
     public static MemberGradeHistory create(
             Member member,
             MemberGrade newGrade,
-            String beforeCode,
-            String afterCode
+            GradeName beforeCode,
+            GradeName afterCode
     ) {
         return MemberGradeHistory.builder()
                 .member(member)
