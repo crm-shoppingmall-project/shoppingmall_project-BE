@@ -1,6 +1,7 @@
 package com.twog.shopping.global.auth.handler;
 
 import com.twog.shopping.domain.log.entity.HistoryActionType;
+import com.twog.shopping.domain.log.entity.HistoryRefTable;
 import com.twog.shopping.domain.log.service.HistoryService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -88,11 +89,16 @@ public class CustomAuthFailureHandler implements AuthenticationFailureHandler {
         );
 
 
+
         historyService.saveHistory(
                 null,
                 HistoryActionType.LOGIN_FAIL,
                 detail,
-                request
+                request,
+                null,
+                null
+
+
         );
 
         // map타입으로 만들어서 스트림 내보내기를 해준 내용이다.

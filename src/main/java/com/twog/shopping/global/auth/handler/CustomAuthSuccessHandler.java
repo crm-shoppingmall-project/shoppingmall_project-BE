@@ -67,7 +67,9 @@ public class CustomAuthSuccessHandler extends SavedRequestAwareAuthenticationSuc
                             "message","로그인 성공",
                             "email",member.getMemberEmail()
                     ),
-                    request
+                    request,
+                    null,
+                    null
             );
         }
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.twog.shopping.domain.log.entity.History;
 import com.twog.shopping.domain.log.entity.HistoryActionType;
+import com.twog.shopping.domain.log.entity.HistoryRefTable;
 import com.twog.shopping.domain.log.repository.HistoryRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,9 @@ public class HistoryService {
             Long memberId,
             HistoryActionType actionType,
             Map<String,Object> detail,
-            HttpServletRequest request
+            HttpServletRequest request,
+            HistoryRefTable refTable,
+            Long refId
     ) {
 
         try {
@@ -31,16 +34,23 @@ public class HistoryService {
                     ? "{}"
                     : objectMapper.writeValueAsString(detail);
 
+            String ip = (request == null) ? "SYSTEM" : getClientIp(request);
+            String userAgent = (request == null) ? "SYSTEM_BATCH" : request.getHeader("User-Agent");
+
+            HistoryRefTable historyRefTable = (refTable == null) ? null : refTable;
+            Long historyRefTblId = (refId == null) ? null : refId;
+
+
             History history = History.builder()
-                    .memberId(memberId)
-                    .actionType(actionType)
+                    .historyMemberId(memberId)
+                    .historyActionType(actionType)
                     .actionCategory(actionType.getCategory())
                     .datetime(LocalDateTime.now())
-                    .detailJson(detailJson)
-                    .ipAddress(getClientIp(request))
-                    .userAgent(request.getHeader("User-Agent"))
-                    .refTable(null)
-                    .refId(null)
+                    .historyDetail(detailJson)
+                    .historyIpAddress(ip)
+                    .userAgent(userAgent)
+                    .historyRefTbl(historyRefTable)
+                    .historyRefTblId(historyRefTblId)
                     .build();
 
             historyRepository.save(history);
@@ -50,31 +60,31 @@ public class HistoryService {
         }
     }
 
-    public void logAuth(Long memberId, HistoryActionType type, Map<String,Object> detail, HttpServletRequest request){
+    public void logAuth(Long memberId, HistoryActionType type, Map<String,Object> detail, HttpServletRequest request, HistoryRefTable refTable, Long refId){
 
-        saveHistory(memberId,type,detail,request);
+        saveHistory(memberId,type,detail,request,refTable,refId);
     }
 
 
-    public void logPurchaseCompleted(Long memberId, HistoryActionType type, Long purchase_detail_id, Integer purchase_paid_amount, HttpServletRequest request){
+    public void logPurchaseCompleted(Long memberId, HistoryActionType type, Long purchase_detail_id, Integer purchase_paid_amount, HttpServletRequest request,HistoryRefTable refTable, Long refId){
         Map<String, Object> detail = Map.of(
                 "purchase_detail_id",purchase_detail_id,
                 "purchase_paid_amount",purchase_paid_amount
 
         );
 
-        saveHistory(memberId,HistoryActionType.PURCHASE_COMPLETED,detail,request);
+        saveHistory(memberId,HistoryActionType.PURCHASE_COMPLETED,detail,request,refTable,refId);
     }
 
 
 
-    public void logview(Long memberId, HistoryActionType type, Long product_id, HttpServletRequest request){
+    public void logview(Long memberId, HistoryActionType type, Long product_id, HttpServletRequest request, HistoryRefTable refTable, Long refId){
 
         Map<String, Object> detail = Map.of(
                 "product_id",product_id
         );
 
-        saveHistory(memberId,type,detail,request);
+        saveHistory(memberId,type,detail,request , refTable,refId);
     }
 
 
