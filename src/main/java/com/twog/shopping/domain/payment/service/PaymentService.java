@@ -11,6 +11,7 @@ import com.twog.shopping.domain.purchase.entity.PurchaseStatus;
 import com.twog.shopping.domain.purchase.repository.PurchaseRepository;
 import com.twog.shopping.global.config.TossPaymentsConfig;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
@@ -28,6 +29,7 @@ import java.util.UUID; // UUID import 추가
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
@@ -40,8 +42,14 @@ public class PaymentService {
         Purchase purchase = purchaseRepository.findById(request.getPurchaseId())
                 .orElseThrow(() -> new NoSuchElementException("구매 정보를 찾을 수 없습니다. (ID: " + request.getPurchaseId() + ")"));
 
+        log.info("권한 확인 시도 - Purchase Member ID: {}, Current User Member ID: {}",
+                purchase.getMemberId(), memberId);
+
         if (!Objects.equals(purchase.getMemberId(), memberId)) {
+//            throw new SecurityException("해당 구매에 대한 결제 권한이 없습니다.");
+            log.warn("권한 불일치 감지! 구매자: {}, 시도자: {}", purchase.getMemberId(), memberId);
             throw new SecurityException("해당 구매에 대한 결제 권한이 없습니다.");
+
         }
 
         if (paymentRepository.findByPurchase_Id(purchase.getId()).isPresent()) {

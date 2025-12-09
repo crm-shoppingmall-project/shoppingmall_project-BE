@@ -54,7 +54,7 @@ public class PurchaseController {
      */
     @PostMapping("/from-cart")
     public ResponseEntity<ApiResponse<Long>> createPurchaseFromCart(
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal DetailsUser user) {
 
         Member member = memberService.getByEmailOrThrow(user.getUsername());
         Long purchaseId = purchaseService.createPurchaseFromCart(member.getMemberId());
@@ -69,7 +69,7 @@ public class PurchaseController {
      */
     @GetMapping
     public ResponseEntity<ApiResponse<Page<PurchaseResponse>>> getMyPurchases(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal DetailsUser user,
             Pageable pageable) {
 
         Member member = memberService.getByEmailOrThrow(user.getUsername());
@@ -85,7 +85,7 @@ public class PurchaseController {
     @PostMapping("/{purchaseId}/cancel")
     public ResponseEntity<ApiResponse<Void>> cancelPurchase(
             @PathVariable Long purchaseId,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal DetailsUser user) {
 
         Member member = memberService.getByEmailOrThrow(user.getUsername());
         purchaseService.cancelPurchase(purchaseId, member.getMemberId());

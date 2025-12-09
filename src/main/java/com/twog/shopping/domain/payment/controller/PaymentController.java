@@ -1,6 +1,7 @@
 package com.twog.shopping.domain.payment.controller;
 
 import com.twog.shopping.domain.member.entity.Member;
+import com.twog.shopping.domain.member.service.DetailsUser;
 import com.twog.shopping.domain.member.service.MemberService;
 import com.twog.shopping.domain.payment.dto.PaymentRequest;
 import com.twog.shopping.domain.payment.dto.PaymentResponse;
@@ -32,7 +33,7 @@ public class PaymentController {
     @PostMapping("/initiate")
     public ResponseEntity<ApiResponse<Map<String, Object>>> initiatePayment(
             @Valid @RequestBody PaymentRequest request,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal DetailsUser user) {
 
         Member member = memberService.getByEmailOrThrow(user.getUsername());
         Long paymentId = paymentService.initiatePayment(request, member.getMemberId());

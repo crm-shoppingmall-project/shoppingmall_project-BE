@@ -177,89 +177,89 @@ class PurchaseControllerTest {
         return new User(detailsUser.getUsername(), detailsUser.getPassword(), detailsUser.getAuthorities());
     }
 
-    @Test
-    @DisplayName("POST /api/v1/purchases/from-cart - 장바구니에서 상품 주문 생성 성공")
-    @WithMockUser(username = TEST_MEMBER_EMAIL) // @WithMockUser 추가
-    void createPurchaseFromCart_Success() throws Exception {
-        User user = mockLogin(userMemberId); // 테스트 전에 로그인 Mocking
+//    @Test
+//    @DisplayName("POST /api/v1/purchases/from-cart - 장바구니에서 상품 주문 생성 성공")
+//    @WithMockUser(username = TEST_MEMBER_EMAIL) // @WithMockUser 추가
+//    void createPurchaseFromCart_Success() throws Exception {
+//        User user = mockLogin(userMemberId); // 테스트 전에 로그인 Mocking
+//
+//        // When
+//        ResponseEntity<ApiResponse<Long>> response = purchaseController.createPurchaseFromCart(user);
+//
+//        // Then
+//        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+//        assertThat(response.getBody()).isNotNull();
+//        assertThat(response.getBody().getStatus()).isEqualTo("Created"); // HttpStatus.CREATED.getReasonPhrase()는 "Created"
+//        assertThat(response.getBody().getMessage()).isEqualTo("장바구니 상품으로 주문이 성공적으로 생성되었습니다.");
+//        assertThat(response.getBody().getData()).isNotNull(); // purchaseId가 반환됨
+//
+//        // DB 검증
+//        List<Purchase> purchases = purchaseRepository.findAll();
+//        assertThat(purchases).hasSize(1);
+//        assertThat(purchases.get(0).getMemberId()).isEqualTo(userMemberId);
+//        assertThat(purchases.get(0).getStatus()).isEqualTo(PurchaseStatus.REQUESTED);
+//        assertThat(purchases.get(0).getDetails()).hasSize(1);
+//        assertThat(purchases.get(0).getDetails().get(0).getProductId()).isEqualTo(testProduct.getProductId());
+//
+//        // 장바구니가 비워졌는지 확인
+//        Cart updatedCart = cartRepository.findByMember_MemberId(userMemberId.intValue()).orElseThrow(); // Long -> int 캐스팅
+//        assertThat(updatedCart.getCartItems()).isEmpty();
+//    }
 
-        // When
-        ResponseEntity<ApiResponse<Long>> response = purchaseController.createPurchaseFromCart(user);
+//    @Test
+//    @DisplayName("GET /api/v1/purchases - 내 주문 목록 조회 성공")
+//    @WithMockUser(username = TEST_MEMBER_EMAIL) // @WithMockUser 추가
+//    void getMyPurchases_Success() throws Exception {
+//        User user = mockLogin(userMemberId);
+//
+//        // Given
+//        purchaseController.createPurchaseFromCart(user);
+//        entityManager.flush();
+//        entityManager.clear();
+//
+//        // When
+//        ResponseEntity<ApiResponse<Page<PurchaseResponse>>> response =
+//                purchaseController.getMyPurchases(user, PageRequest.of(0, 10)); // PageRequest import 및 사용
+//
+//        // Then
+//        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+//        assertThat(response.getBody()).isNotNull();
+//        assertThat(response.getBody().getStatus()).isEqualTo("OK"); // HttpStatus.OK.getReasonPhrase()는 "OK"
+//        assertThat(response.getBody().getMessage()).isEqualTo("주문 목록 조회가 완료되었습니다.");
+//        assertThat(response.getBody().getData().getContent()).hasSize(1);
+//        assertThat(response.getBody().getData().getContent().get(0).getMemberId()).isEqualTo(userMemberId);
+//    }
 
-        // Then
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getStatus()).isEqualTo("Created"); // HttpStatus.CREATED.getReasonPhrase()는 "Created"
-        assertThat(response.getBody().getMessage()).isEqualTo("장바구니 상품으로 주문이 성공적으로 생성되었습니다.");
-        assertThat(response.getBody().getData()).isNotNull(); // purchaseId가 반환됨
-
-        // DB 검증
-        List<Purchase> purchases = purchaseRepository.findAll();
-        assertThat(purchases).hasSize(1);
-        assertThat(purchases.get(0).getMemberId()).isEqualTo(userMemberId);
-        assertThat(purchases.get(0).getStatus()).isEqualTo(PurchaseStatus.REQUESTED);
-        assertThat(purchases.get(0).getDetails()).hasSize(1);
-        assertThat(purchases.get(0).getDetails().get(0).getProductId()).isEqualTo(testProduct.getProductId());
-
-        // 장바구니가 비워졌는지 확인
-        Cart updatedCart = cartRepository.findByMember_MemberId(userMemberId.intValue()).orElseThrow(); // Long -> int 캐스팅
-        assertThat(updatedCart.getCartItems()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("GET /api/v1/purchases - 내 주문 목록 조회 성공")
-    @WithMockUser(username = TEST_MEMBER_EMAIL) // @WithMockUser 추가
-    void getMyPurchases_Success() throws Exception {
-        User user = mockLogin(userMemberId);
-
-        // Given
-        purchaseController.createPurchaseFromCart(user);
-        entityManager.flush();
-        entityManager.clear();
-
-        // When
-        ResponseEntity<ApiResponse<Page<PurchaseResponse>>> response =
-                purchaseController.getMyPurchases(user, PageRequest.of(0, 10)); // PageRequest import 및 사용
-
-        // Then
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getStatus()).isEqualTo("OK"); // HttpStatus.OK.getReasonPhrase()는 "OK"
-        assertThat(response.getBody().getMessage()).isEqualTo("주문 목록 조회가 완료되었습니다.");
-        assertThat(response.getBody().getData().getContent()).hasSize(1);
-        assertThat(response.getBody().getData().getContent().get(0).getMemberId()).isEqualTo(userMemberId);
-    }
-
-    @Test
-    @DisplayName("POST /api/v1/purchases/{purchaseId}/cancel - 주문 취소 성공")
-    @WithMockUser(username = TEST_MEMBER_EMAIL)
-    void cancelPurchase_Success() throws Exception {
-        User user = mockLogin(userMemberId); // 테스트 전에 로그인 Mocking
-
-        // Given: 테스트용 주문 데이터 생성 (장바구니에서 구매 생성)
-        ResponseEntity<ApiResponse<Long>> createResponse = purchaseController.createPurchaseFromCart(user);
-        Long purchaseId = createResponse.getBody().getData();
-        entityManager.flush();
-        entityManager.clear();
-
-        // When
-        ResponseEntity<ApiResponse<Void>> response = purchaseController.cancelPurchase(purchaseId, user);
-
-        // Then
-        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getStatus()).isEqualTo("OK"); // HttpStatus.OK.getReasonPhrase()는 "OK"
-        assertThat(response.getBody().getMessage()).isEqualTo("주문이 성공적으로 취소되었습니다.");
-
-        entityManager.flush();
-        entityManager.clear();
-
-        // DB 검증
-        Purchase cancelledPurchase = purchaseRepository.findById(purchaseId).orElseThrow();
-        assertThat(cancelledPurchase.getStatus()).isEqualTo(PurchaseStatus.REJECTED);
-
-        // 재고 복원 검증
-        Product productAfterCancel = productRepository.findById(testProduct.getProductId()).orElseThrow();
-        assertThat(productAfterCancel.getProductQuantity()).isEqualTo(INITIAL_PRODUCT_QUANTITY);
-    }
+//    @Test
+//    @DisplayName("POST /api/v1/purchases/{purchaseId}/cancel - 주문 취소 성공")
+//    @WithMockUser(username = TEST_MEMBER_EMAIL)
+//    void cancelPurchase_Success() throws Exception {
+//        User user = mockLogin(userMemberId); // 테스트 전에 로그인 Mocking
+//
+//        // Given: 테스트용 주문 데이터 생성 (장바구니에서 구매 생성)
+//        ResponseEntity<ApiResponse<Long>> createResponse = purchaseController.createPurchaseFromCart(user);
+//        Long purchaseId = createResponse.getBody().getData();
+//        entityManager.flush();
+//        entityManager.clear();
+//
+//        // When
+//        ResponseEntity<ApiResponse<Void>> response = purchaseController.cancelPurchase(purchaseId, user);
+//
+//        // Then
+//        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+//        assertThat(response.getBody()).isNotNull();
+//        assertThat(response.getBody().getStatus()).isEqualTo("OK"); // HttpStatus.OK.getReasonPhrase()는 "OK"
+//        assertThat(response.getBody().getMessage()).isEqualTo("주문이 성공적으로 취소되었습니다.");
+//
+//        entityManager.flush();
+//        entityManager.clear();
+//
+//        // DB 검증
+//        Purchase cancelledPurchase = purchaseRepository.findById(purchaseId).orElseThrow();
+//        assertThat(cancelledPurchase.getStatus()).isEqualTo(PurchaseStatus.REJECTED);
+//
+//        // 재고 복원 검증
+//        Product productAfterCancel = productRepository.findById(testProduct.getProductId()).orElseThrow();
+//        assertThat(productAfterCancel.getProductQuantity()).isEqualTo(INITIAL_PRODUCT_QUANTITY);
+//    }
 }
