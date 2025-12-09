@@ -33,7 +33,10 @@ public class PurchaseController {
      * [POST] /api/v1/purchases
      */
     @PostMapping
+<<<<<<< HEAD
     @LogHistory(actionType = HistoryActionType.PURCHASE_COMPLETED)
+=======
+>>>>>>> order/pay
     public ResponseEntity<ApiResponse<PurchaseResponse>> createPurchase(
             @Valid @RequestBody PurchaseRequest request,
             @AuthenticationPrincipal DetailsUser user) {
@@ -48,16 +51,24 @@ public class PurchaseController {
         // 1) 현재 로그인 유저 이메일로 Member 조회
 >>>>>>> d9c78f8ca8cb9fe91690a73469a1cc9267106256
         Member member = memberService.getByEmailOrThrow(user.getUsername());
+<<<<<<< HEAD
 
         // 2) 서비스에서 Purchase 엔티티까지 받아오기
         Purchase purchase = purchaseService.createPurchase(request, member.getMemberId());
 
         // 3) 엔티티 -> 응답 DTO 변환
+=======
+//        Long purchaseId = purchaseService.createPurchase(request, member.getMemberId());
+        Purchase purchase = purchaseService.createPurchase(request, member.getMemberId());
+
+>>>>>>> order/pay
         PurchaseResponse response = PurchaseResponse.fromEntity(purchase);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED, "주문이 성공적으로 생성되었습니다.", response));
     }
+
+
 
     /**
      * 장바구니 상품으로 주문 생성

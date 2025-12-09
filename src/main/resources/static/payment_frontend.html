@@ -115,6 +115,11 @@
         const clientKey = 'test_ck_P9BRQmyarYg55ZeE5b5X3J07KzLN';
         const tossPayments = TossPayments(clientKey);
 
+        // --- 수정 부분 시작 ---
+        // 여기에 JWT 토큰을 넣습니다.
+        const JWT_TOKEN = 'eyJkYXRlIjoxNzY1MjYyMTQyNzE4LCJ0eXBlIjoiand0IiwiYWxnIjoiSFMyNTYifQ.eyJzdWIiOiJvaGdpcmFmZmVycyB0b2tlbiA6IDk1Iiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjUyNjU3NDIsImVtYWlsIjoidGVzdHVzZXIwMUBleGFtcGxlLmNvbSJ9.x5WwivQx9UYqN07ejpIJG2S-fh0tplqCAEoN6Tdm_QU';
+        // --- 수정 부분 끝 ---
+
         const payButton = document.getElementById('payButton');
         const purchaseIdInput = document.getElementById('purchaseId');
         const amountInput = document.getElementById('amount');
@@ -139,6 +144,9 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        // --- 수정 부분 시작 ---
+                        'Authorization': `Bearer ${JWT_TOKEN}` // <-- 이 줄을 추가하거나 수정합니다.
+                        // --- 수정 부분 끝 ---
                         // 'X-CSRF-TOKEN': 'YOUR_CSRF_TOKEN' // CSRF 보호가 활성화된 경우 필요
                     },
                     body: JSON.stringify({

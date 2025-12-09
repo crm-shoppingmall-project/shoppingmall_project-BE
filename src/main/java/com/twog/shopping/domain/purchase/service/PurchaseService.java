@@ -4,6 +4,8 @@ import com.twog.shopping.domain.cart.entity.Cart;
 import com.twog.shopping.domain.cart.entity.CartItem;
 import com.twog.shopping.domain.cart.repository.CartItemRepository;
 import com.twog.shopping.domain.cart.repository.CartRepository;
+import com.twog.shopping.domain.member.entity.Member; // Member import 추가
+import com.twog.shopping.domain.member.repository.MemberRepository; // MemberRepository import 추가
 import com.twog.shopping.domain.product.entity.Product;
 import com.twog.shopping.domain.product.repository.ProductRepository;
 import com.twog.shopping.domain.purchase.dto.PurchaseRequest;
@@ -12,6 +14,7 @@ import com.twog.shopping.domain.purchase.entity.Purchase;
 import com.twog.shopping.domain.purchase.entity.PurchaseDetail;
 import com.twog.shopping.domain.purchase.entity.PurchaseStatus;
 import com.twog.shopping.domain.purchase.repository.PurchaseRepository;
+import com.twog.shopping.global.common.entity.GradeName; // GradeName import 추가
 import com.twog.shopping.global.error.exception.OutOfStockException;
 import com.twog.shopping.global.error.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +36,16 @@ public class PurchaseService {
     private final ProductRepository productRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final MemberRepository memberRepository; // MemberRepository 주입
 
     @Transactional
     public Purchase createPurchase(PurchaseRequest request, Long memberId) {
+<<<<<<< HEAD
+=======
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ResourceNotFoundException("회원 정보를 찾을 수 없습니다. (ID: " + memberId + ")"));
+        GradeName memberGradeName = member.getMemberGrade().getGradeName();
+>>>>>>> order/pay
 
         Purchase purchase = Purchase.builder()
                 .memberId(memberId)
@@ -43,7 +53,6 @@ public class PurchaseService {
                 .build();
 
         for (PurchaseRequest.PurchaseItemDto itemDto : request.getItems()) {
-
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new NoSuchElementException("상품 정보를 찾을 수 없습니다. (ID: " + itemDto.getProductId() + ")"));
 
@@ -52,7 +61,8 @@ public class PurchaseService {
             }
             product.decreaseStock(itemDto.getQuantity());
 
-            int itemActualPrice = product.getProductPrice();
+            // 회원 등급에 따른 할인 가격 적용
+            int itemActualPrice = memberGradeName.applyDiscountRate(product.getProductPrice());
 
             PurchaseDetail detail = PurchaseDetail.builder()
                     .productId(itemDto.getProductId())
@@ -72,16 +82,23 @@ public class PurchaseService {
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         return savedPurchase.getId();
 =======
 //        return savedPurchase.getId(); // 수정: 저장된 객체의 ID 반환
         return savedPurchase;
 >>>>>>> d9c78f8ca8cb9fe91690a73469a1cc9267106256
+=======
+        return savedPurchase;
+>>>>>>> order/pay
     }
 
     @Transactional
     public Long createPurchaseFromCart(Long memberId) {
-        // memberId를 int로 캐스팅하여 findByMember_MemberId에 전달
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ResourceNotFoundException("회원 정보를 찾을 수 없습니다. (ID: " + memberId + ")"));
+        GradeName memberGradeName = member.getMemberGrade().getGradeName();
+
         Cart cart = cartRepository.findByMember_MemberId(memberId.intValue())
                 .orElseThrow(() -> new ResourceNotFoundException("장바구니를 찾을 수 없습니다."));
 
@@ -104,10 +121,13 @@ public class PurchaseService {
             }
             product.decreaseStock(quantity);
 
+            // 회원 등급에 따른 할인 가격 적용
+            int itemActualPrice = memberGradeName.applyDiscountRate(product.getProductPrice());
+
             PurchaseDetail detail = PurchaseDetail.builder()
                     .productId(product.getProductId())
                     .quantity(quantity)
-                    .paidAmount(product.getProductPrice())
+                    .paidAmount(itemActualPrice)
                     .build();
             purchase.addDetail(detail);
         }

@@ -56,7 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PurchaseControllerTest {
 
     @Autowired
-    private PurchaseController purchaseController; // 컨트롤러 직접 주입
+    private PurchaseController purchaseController;
 
     @Autowired
     private MemberRepository memberRepository;
