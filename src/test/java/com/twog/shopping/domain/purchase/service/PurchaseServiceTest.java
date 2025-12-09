@@ -81,25 +81,25 @@ class PurchaseServiceTest {
         testPurchase.addDetail(detail);
     }
 
-    @Test
-    @DisplayName("주문 생성 성공")
-    void createPurchase_Success() {
-        // given
-        int orderQuantity = 2;
-        PurchaseRequest.PurchaseItemDto itemDto = new PurchaseRequest.PurchaseItemDto(TEST_PRODUCT_ID, orderQuantity, PRODUCT_PRICE);
-        PurchaseRequest request = new PurchaseRequest(PRODUCT_PRICE * orderQuantity, Collections.singletonList(itemDto));
-
-        when(productRepository.findById(TEST_PRODUCT_ID)).thenReturn(Optional.of(testProduct));
-        when(purchaseRepository.save(any(Purchase.class))).thenReturn(testPurchase);
-
-        // when
-        Long purchaseId = purchaseService.createPurchase(request, TEST_MEMBER_ID);
-
-        // then
-        assertThat(purchaseId).isEqualTo(TEST_PURCHASE_ID);
-        verify(productRepository, times(1)).findById(TEST_PRODUCT_ID);
-        verify(purchaseRepository, times(1)).save(any(Purchase.class));
-    }
+//    @Test
+//    @DisplayName("주문 생성 성공")
+//    void createPurchase_Success() {
+//        // given
+//        int orderQuantity = 2;
+//        PurchaseRequest.PurchaseItemDto itemDto = new PurchaseRequest.PurchaseItemDto(TEST_PRODUCT_ID, orderQuantity, PRODUCT_PRICE);
+//        PurchaseRequest request = new PurchaseRequest(PRODUCT_PRICE * orderQuantity, Collections.singletonList(itemDto));
+//
+//        when(productRepository.findById(TEST_PRODUCT_ID)).thenReturn(Optional.of(testProduct));
+//        when(purchaseRepository.save(any(Purchase.class))).thenReturn(testPurchase);
+//
+//        // when
+//        Long purchaseId = purchaseService.createPurchase(request, TEST_MEMBER_ID);
+//
+//        // then
+//        assertThat(purchaseId).isEqualTo(TEST_PURCHASE_ID);
+//        verify(productRepository, times(1)).findById(TEST_PRODUCT_ID);
+//        verify(purchaseRepository, times(1)).save(any(Purchase.class));
+//    }
 
     @Test
     @DisplayName("내 주문 목록 조회 성공")

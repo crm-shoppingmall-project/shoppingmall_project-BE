@@ -27,7 +27,7 @@ public class PurchaseService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public Long createPurchase(PurchaseRequest request, Long memberId) {
+    public Purchase createPurchase(PurchaseRequest request, Long memberId) {
 
         Purchase purchase = Purchase.builder()
                 .memberId(memberId)
@@ -63,7 +63,8 @@ public class PurchaseService {
             throw new IllegalStateException("총 결제 금액 불일치. 위변조가 의심됩니다. (서버 계산: " + serverCalculatedTotal + ", 요청: " + request.getTotalAmount() + ")");
         }
 
-        return savedPurchase.getId(); // 수정: 저장된 객체의 ID 반환
+//        return savedPurchase.getId(); // 수정: 저장된 객체의 ID 반환
+        return savedPurchase;
     }
 
     public Page<PurchaseResponse> findMyPurchases(Long memberId, Pageable pageable) {
