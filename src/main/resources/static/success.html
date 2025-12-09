@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>결제 성공</title>
+</head>
+<body>
+<h1>결제가 성공적으로 완료되었습니다.</h1>
+
+<div id="info"></div>
+<div id="result"></div>
+
+<script>
+    const url = new URL(window.location.href);
+    const paymentKey = url.searchParams.get("paymentKey");
+    const orderId = url.searchParams.get("orderId");
+    const amount = url.searchParams.get("amount");
+
+    document.getElementById("info").innerHTML = `
+        <p>paymentKey: ${paymentKey}</p>
+        <p>orderId: ${orderId}</p>
+        <p>amount: ${amount}</p>
+    `;
+
+    (async function confirmPayment() {
+        try {
+            const token = localStorage.getItem("accessToken");
+            if (!token) {
+                document.getElementById("result").innerText = "Access Token 없음. 확인 불가";
+                return;
+            }
+
+            const response = await fetch(`/api/v1/payments/confirm?paymentKey=${paymentKey}&orderId=${orderId}&amount=${amount}`, {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            const text = await response.text();
+
+            if (!response.ok) {
+                throw new Error(text);
+            }
+
+            document.getElementById("result").innerText = "서버 결제 승인 완료: " + text;
+
+        } catch (e) {
+            document.getElementById("result").innerText = "오류: " + e.message;
+        }
+    })();
+</script>
+
+</body>
+</html>
