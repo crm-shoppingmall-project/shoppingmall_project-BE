@@ -4,18 +4,22 @@ import com.twog.shopping.domain.payment.dto.PaymentRequest;
 import com.twog.shopping.domain.payment.dto.PaymentResponse;
 import com.twog.shopping.domain.payment.entity.Payment;
 import com.twog.shopping.domain.payment.entity.PaymentStatus;
-import com.twog.shopping.domain.payment.entity.PaymentType;
 import com.twog.shopping.domain.payment.repository.PaymentRepository;
 import com.twog.shopping.domain.purchase.entity.Purchase;
 import com.twog.shopping.domain.purchase.entity.PurchaseStatus;
 import com.twog.shopping.domain.purchase.repository.PurchaseRepository;
+import com.twog.shopping.global.config.TossPaymentsConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
@@ -26,9 +30,11 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PurchaseRepository purchaseRepository;
+    private final TossPaymentsConfig tossPaymentsConfig;
+    private final RestTemplate restTemplate;
 
     @Transactional
-    public Long createPayment(PaymentRequest request, Long memberId) {
+    public Long initiatePayment(PaymentRequest request, Long memberId) {
         Purchase purchase = purchaseRepository.findById(request.getPurchaseId())
                 .orElseThrow(() -> new NoSuchElementException("구매 정보를 찾을 수 없습니다. (ID: " + request.getPurchaseId() + ")"));
 
@@ -48,43 +54,126 @@ public class PaymentService {
             throw new IllegalStateException("결제 금액이 구매 금액과 일치하지 않습니다. (요청 금액: " + request.getAmount() + ", 실제 구매 금액: " + actualPurchaseAmount + ")");
         }
 
-        // 초기 결제 상태를 REQUESTED로 설정
         Payment payment = Payment.builder()
                 .purchase(purchase)
-                .pgTid(request.getPaymentKey()) // PG사 거래번호 (초기에는 임시값 또는 요청값)
-                .status(PaymentStatus.REQUESTED) // 결제 요청 상태
+                .pgTid(null) // 초기에는 pgTid를 null로 설정
+                .status(PaymentStatus.REQUESTED)
                 .type(request.getPaymentType())
-                .paidAt(null) // 아직 결제 완료되지 않았으므로 null
+                .paidAt(null)
                 .build();
 
-        paymentRepository.save(payment);
+        Payment savedPayment = paymentRepository.save(payment);
 
-        // 구매 상태를 결제 요청 상태로 변경 (선택 사항, REQUESTED가 더 적절할 수 있음)
-        // purchase.updateStatus(PurchaseStatus.PAYMENT_REQUESTED); // 만약 PurchaseStatus에 PAYMENT_REQUESTED가 있다면
-        purchaseRepository.save(purchase); // purchase 엔티티의 변경사항 저장 (여기서는 상태 변경이 없으므로 생략 가능하지만, 일관성을 위해 유지)
-
-        return payment.getId();
+        return savedPayment.getId();
     }
 
     @Transactional
-    public void confirmPayment(Long paymentId, String pgTid) {
-        Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new NoSuchElementException("결제 정보를 찾을 수 없습니다. (ID: " + paymentId + ")"));
+    public void confirmTossPayment(String paymentKey, String orderId, Integer amount) {
+
+        Payment payment = paymentRepository.findByPurchase_Id(Long.valueOf(orderId))
+                .orElseThrow(() -> new NoSuchElementException("결제 정보를 찾을 수 없습니다. (OrderId: " + orderId + ")"));
 
         if (payment.getStatus() != PaymentStatus.REQUESTED) {
             throw new IllegalStateException("결제 승인 대기 상태가 아닙니다. (현재 상태: " + payment.getStatus() + ")");
         }
 
-        // PG사로부터 받은 최종 pgTid로 업데이트
-        payment.updatePgTid(pgTid); // Payment 엔티티에 updatePgTid 메서드가 필요
-        payment.setStatus(PaymentStatus.COMPLETED);
-        payment.setPaidAt(LocalDateTime.now()); // 결제 완료 시간 설정
-        paymentRepository.save(payment);
-
-        // 구매 상태를 결제 완료로 변경
         Purchase purchase = payment.getPurchase();
-        purchase.updateStatus(PurchaseStatus.COMPLETED);
-        purchaseRepository.save(purchase);
+        Integer actualPurchaseAmount = purchase.getDetails().stream()
+                .mapToInt(detail -> detail.getPaidAmount() * detail.getQuantity())
+                .sum();
+
+        if (!Objects.equals(actualPurchaseAmount, amount)) {
+            throw new IllegalStateException("토스페이먼츠 결제 금액과 구매 금액이 일치하지 않습니다. (토스 금액: " + amount + ", 실제 구매 금액: " + actualPurchaseAmount + ")");
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        String encodedSecretKey = Base64.getEncoder().encodeToString((tossPaymentsConfig.getSecretKey() + ":").getBytes());
+        headers.set("Authorization", "Basic " + encodedSecretKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // 토스페이먼츠 결제 승인 API 요청 본문
+        Map<String, Object> requestBody = Map.of(
+                "paymentKey", paymentKey,
+                "orderId", orderId,
+                "amount", amount
+        );
+
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            // 토스페이먼츠 결제 승인 API 호출
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    tossPaymentsConfig.getApiUrl() + "/confirm",
+                    requestEntity,
+                    Map.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                // 결제 성공 처리
+                payment.setStatus(PaymentStatus.COMPLETED);
+                payment.setPaidAt(LocalDateTime.now());
+                payment.updatePgTid(paymentKey);
+                paymentRepository.save(payment);
+
+                purchase.updateStatus(PurchaseStatus.COMPLETED);
+                purchaseRepository.save(purchase);
+            } else {
+                // 결제 실패 처리
+                // 필요하다면 payment.setStatus(PaymentStatus.FAILED) 등으로 변경 가능
+                throw new RuntimeException("토스페이먼츠 승인 실패: " + response.getBody());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("토스페이먼츠 API 호출 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    @Transactional
+    public void cancelPayment(Long paymentId, Long memberId, String cancelReason) {
+        Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new NoSuchElementException("결제 정보를 찾을 수 없습니다. (ID: " + paymentId + ")"));
+
+        if (!Objects.equals(payment.getPurchase().getMemberId(), memberId)) {
+            throw new SecurityException("해당 결제에 대한 취소 권한이 없습니다.");
+        }
+
+        if (payment.getStatus() != PaymentStatus.COMPLETED) {
+            throw new IllegalStateException("완료되지 않은 결제는 취소할 수 없습니다. (현재 상태: " + payment.getStatus() + ")");
+        }
+
+        // 토스페이먼츠 API를 통한 결제 취소
+        HttpHeaders headers = new HttpHeaders();
+        String encodedSecretKey = Base64.getEncoder().encodeToString((tossPaymentsConfig.getSecretKey() + ":").getBytes());
+        headers.set("Authorization", "Basic " + encodedSecretKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // 토스페이먼츠 결제 취소 API 요청 본문
+        Map<String, String> requestBody = Map.of("cancelReason", cancelReason);
+
+        HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            // 토스페이먼츠 결제 취소 API 호출
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    tossPaymentsConfig.getApiUrl() + "/" + payment.getPgTid() + "/cancel",
+                    requestEntity,
+                    Map.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                // 결제 취소 성공 처리
+                payment.setStatus(PaymentStatus.REJECTED);
+                paymentRepository.save(payment);
+
+                Purchase purchase = payment.getPurchase();
+                purchase.updateStatus(PurchaseStatus.REJECTED);
+                purchaseRepository.save(purchase);
+            } else {
+                // 결제 취소 실패 처리
+                throw new RuntimeException("토스페이먼츠 취소 실패: " + response.getBody());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("토스페이먼츠 API 호출 중 오류가 발생했습니다.", e);
+        }
     }
 
     public PaymentResponse getPaymentById(Long paymentId) {

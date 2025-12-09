@@ -23,7 +23,7 @@ public class PurchaseResponse {
     @Getter
     @Builder
     public static class PurchaseDetailResponse {
-        private Long productId;
+        private int productId; // Long -> int로 수정
         private Integer quantity;
         private Integer paidAmount; // BigDecimal -> Integer
 

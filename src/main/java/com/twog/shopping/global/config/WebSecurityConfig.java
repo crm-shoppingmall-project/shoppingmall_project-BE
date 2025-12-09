@@ -84,6 +84,14 @@ public class WebSecurityConfig {
 
                         .requestMatchers("/api/v1/members/login", "/api/v1/members/signup").permitAll()
 
+                        // 토스페이먼츠 관련 경로 및 프론트엔드 페이지 허용
+                        .requestMatchers(
+                                "/payment_frontend.html",
+                                "/api/v1/payments/initiate",
+                                "/api/v1/payments/confirm",
+                                "/fail"
+                        ).permitAll()
+
                         // 그 외는 인증 필요
                         .anyRequest().authenticated()
                 )

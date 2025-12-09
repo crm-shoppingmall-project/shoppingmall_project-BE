@@ -17,17 +17,27 @@ spring:
         format_sql: true
         use_sql_comments: true
 
-  # ==================================
-  # 3. Spring Security 설정
-  # (global.config.SecurityConfig 관련)
-  # ==================================
-  # 🚨 주의: 아래 인메모리 사용자는 개발 및 테스트용입니다.
-  # 실제 운영 환경에서는 데이터베이스 기반 인증 또는 OAuth2를 사용해야 합니다.
   servlet:
     encoding:
       charset: UTF-8
       enabled: true
       force: true
+
+# ==================================
+# Toss Payments 설정
+# ==================================
+toss:
+  payments:
+    secret-key: test_sk_Gv6LjeKD8ab6G5enAydw3wYxAdXy # 🚨 여기에 실제 테스트 시크릿 키를 입력하세요.
+    client-key: test_ck_P9BRQmyarYg55ZeE5b5X3J07KzLN # 🚨 여기에 실제 테스트 클라이언트 키를 입력하세요.
+    api-url: https://api.tosspayments.com/v1/payments/
+
+#  # ==================================
+#  # 3. Spring Security 설정
+#  # (global.config.SecurityConfig 관련)
+#  # ==================================
+#  # 🚨 주의: 아래 인메모리 사용자는 개발 및 테스트용입니다.
+#  # 실제 운영 환경에서는 데이터베이스 기반 인증 또는 OAuth2를 사용해야 합니다.
 #  security:
 #    user:
 #      name: admin
