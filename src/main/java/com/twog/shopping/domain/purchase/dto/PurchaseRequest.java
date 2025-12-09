@@ -25,7 +25,7 @@ public class PurchaseRequest {
     public static class PurchaseItemDto {
 
         @NotNull
-        private Long productId;
+        private int productId; // Long -> int로 수정
 
         @NotNull
         private Integer quantity;

@@ -36,7 +36,7 @@ public class PurchaseService {
 
         for (PurchaseRequest.PurchaseItemDto itemDto : request.getItems()) {
 
-            Product product = productRepository.findById(itemDto.getProductId().intValue())
+            Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new NoSuchElementException("상품 정보를 찾을 수 없습니다. (ID: " + itemDto.getProductId() + ")"));
 
             if (!product.isStock(itemDto.getQuantity())) {
@@ -44,7 +44,7 @@ public class PurchaseService {
             }
             product.decreaseStock(itemDto.getQuantity());
 
-            int itemActualPrice = product.getProductPrice(); // BigDecimal -> int
+            int itemActualPrice = product.getProductPrice();
 
             PurchaseDetail detail = PurchaseDetail.builder()
                     .productId(itemDto.getProductId())
@@ -55,15 +55,15 @@ public class PurchaseService {
             purchase.addDetail(detail);
         }
 
-        purchaseRepository.save(purchase);
+        Purchase savedPurchase = purchaseRepository.save(purchase); // 수정: save 후 반환된 객체 사용
 
-        Integer serverCalculatedTotal = calculateTotalAmount(purchase.getId()); // BigDecimal -> Integer
+        Integer serverCalculatedTotal = calculateTotalAmount(savedPurchase); // 수정: 저장된 객체 전달
 
-        if (!Objects.equals(serverCalculatedTotal, request.getTotalAmount())) { // compareTo -> Objects.equals
+        if (!Objects.equals(serverCalculatedTotal, request.getTotalAmount())) {
             throw new IllegalStateException("총 결제 금액 불일치. 위변조가 의심됩니다. (서버 계산: " + serverCalculatedTotal + ", 요청: " + request.getTotalAmount() + ")");
         }
 
-        return purchase.getId();
+        return savedPurchase.getId(); // 수정: 저장된 객체의 ID 반환
     }
 
     public Page<PurchaseResponse> findMyPurchases(Long memberId, Pageable pageable) {
@@ -82,7 +82,7 @@ public class PurchaseService {
         purchase.updateStatus(PurchaseStatus.REJECTED);
 
         for (PurchaseDetail detail : purchase.getDetails()) {
-            Product product = productRepository.findById(detail.getProductId().intValue())
+            Product product = productRepository.findById(detail.getProductId())
                     .orElseThrow(() -> new NoSuchElementException("상품 정보를 찾을 수 없습니다. (ID: " + detail.getProductId() + ")"));
             product.decreaseStock(-detail.getQuantity());
         }
@@ -98,12 +98,10 @@ public class PurchaseService {
         purchase.updateStatus(PurchaseStatus.REJECTED); // RETURN_REQUESTED 대신 REJECTED로 임시 변경
     }
 
-    public Integer calculateTotalAmount(Long purchaseId) { // BigDecimal -> Integer
-        Purchase purchase = findById(purchaseId);
-
+    public Integer calculateTotalAmount(Purchase purchase) {
         return purchase.getDetails().stream()
-                .mapToInt(detail -> detail.getPaidAmount() * detail.getQuantity()) // BigDecimal -> int
-                .sum(); // reduce(BigDecimal.ZERO, BigDecimal::add) -> sum()
+                .mapToInt(detail -> detail.getPaidAmount() * detail.getQuantity())
+                .sum();
     }
 
     public Purchase findById(Long purchaseId) {

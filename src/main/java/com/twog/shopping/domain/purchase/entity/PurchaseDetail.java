@@ -17,7 +17,7 @@ public class PurchaseDetail {
     private Long id;
 
     @Column(name = "product_id", nullable = false)
-    private Long productId;
+    private int productId; // Long -> int로 수정
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_id", nullable = false)

@@ -7,6 +7,7 @@ import com.twog.shopping.domain.cart.repository.CartRepository;
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.domain.member.service.DetailsUser;
+import com.twog.shopping.domain.member.service.DetailsUser;
 import com.twog.shopping.domain.product.entity.Product;
 import com.twog.shopping.domain.product.entity.ProductStatus;
 import com.twog.shopping.domain.product.repository.ProductRepository;
