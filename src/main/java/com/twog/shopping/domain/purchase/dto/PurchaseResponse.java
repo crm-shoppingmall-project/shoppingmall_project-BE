@@ -50,7 +50,7 @@ public class PurchaseResponse {
                 .memberId(purchase.getMemberId())
                 .status(purchase.getStatus())
                 .details(detailResponses)
-                .createdAt(purchase.getCreatedAt())
+                .createdAt(purchase.getProcessedAt())
                 .totalAmount(totalAmount)
                 .build();
     }
