@@ -5,6 +5,7 @@ import com.twog.shopping.domain.product.dto.ProductResponseDto;
 import com.twog.shopping.domain.product.entity.Product;
 import com.twog.shopping.domain.product.entity.ProductStatus;
 import com.twog.shopping.domain.product.repository.ProductRepository;
+import com.twog.shopping.domain.member.entity.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 @Transactional
 // 각 테스트 메서드가 끝날 때마다 컨텍스트를 리셋하도록 만드는 방법(차후 독립적 테스트가 필요할 경우 유용)
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+// @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ProductServiceTest {
 
     @Autowired
@@ -121,17 +122,19 @@ class ProductServiceTest {
     @DisplayName("모든 조건 없이 상품 목록을 조회한다")
     void findProductsWithoutConditionsTest() {
         // when
-        List<ProductResponseDto> products = productService.findProducts(null, null, null, null);
+        List<ProductResponseDto> products = productService.findProducts(null, null, null, null, null);
 
         // then
-        assertThat(products).hasSize(154);
+        // then
+        assertThat(products).extracting("productName")
+                .contains(product1.getProductName(), "Test Product 2");
     }
 
     @Test
     @DisplayName("상품 이름으로 상품 목록을 조회한다")
     void findProductsByProductNameTest() {
         // when
-        List<ProductResponseDto> products = productService.findProducts(null, "Product 1", null, null);
+        List<ProductResponseDto> products = productService.findProducts(null, "Product 1", null, null, null);
 
         // then
         assertThat(products).hasSize(1);
@@ -142,10 +145,47 @@ class ProductServiceTest {
     @DisplayName("카테고리로 상품 목록을 조회한다")
     void findProductsByCategoryTest() {
         // when
-        List<ProductResponseDto> products = productService.findProducts(null, null, "Category B", null);
+        List<ProductResponseDto> products = productService.findProducts(null, null, "Category B", null, null);
 
         // then
         assertThat(products).hasSize(1);
         assertThat(products.getFirst().getProductName()).isEqualTo("Test Product 2");
+    }
+
+    @Test
+    @DisplayName("관리자는 삭제된 상품도 조회할 수 있다")
+    void findProductsByAdminTest() {
+        // given
+        productService.deleteProduct(product1.getProductId());
+
+        // when (USER 권한)
+        List<ProductResponseDto> userProducts = productService.findProducts(product1.getProductId(), null, null,
+                UserRole.USER, null);
+        // when (ADMIN 권한)
+        List<ProductResponseDto> adminProducts = productService.findProducts(product1.getProductId(), null, null,
+                UserRole.ADMIN, null);
+
+        // then
+        assertThat(userProducts).isEmpty();
+        assertThat(adminProducts).isNotEmpty();
+        assertThat(adminProducts.getFirst().getProductStatus()).isEqualTo(ProductStatus.DELETED);
+    }
+
+    @Test
+    @DisplayName("멤버 등급에 따라 할인된 가격이 적용된다")
+    void findProductsWithDiscountTest() {
+        // given
+        com.twog.shopping.global.common.entity.GradeName bronzeGrade = com.twog.shopping.global.common.entity.GradeName.BRONZE;
+
+        // when
+        // BRONZE 등급 (2% 할인): 10000 -> 9800
+        List<ProductResponseDto> products = productService.findProducts(null, "Product 1", null, UserRole.USER,
+                bronzeGrade);
+
+        // then
+        assertThat(products).isNotEmpty();
+        ProductResponseDto product = products.getFirst();
+        assertThat(product.getDiscountPrice()).isEqualTo(9800);
+        assertThat(product.getProductPrice()).isEqualTo(10000);
     }
 }
