@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 public interface MemberGradeRepository extends JpaRepository<MemberGrade,Integer> {
 
     MemberGrade findByGradeName(GradeName gradeName);
+
+
 }
 
 
