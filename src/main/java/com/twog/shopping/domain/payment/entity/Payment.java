@@ -23,7 +23,7 @@ public class Payment {
     @JoinColumn(name = "purchase_id", nullable = false)
     private Purchase purchase;
 
-    @Column(name = "payment_tid", nullable = false, unique = true, length = 20) // pg_tid -> payment_tid로 컬럼명 변경
+    @Column(name = "payment_tid", nullable = false, unique = true, length = 255) // 20 -> 255로 변경
     private String pgTid;
 
     @Enumerated(EnumType.STRING)

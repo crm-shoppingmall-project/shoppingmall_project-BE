@@ -66,7 +66,7 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<Void>> cancelPayment(
             @PathVariable Long paymentId,
             @RequestBody Map<String, String> requestBody,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal DetailsUser user) {
 
         Optional<Member> member = memberService.findByEmail(user.getUsername());
         String cancelReason = requestBody.getOrDefault("cancelReason", "고객 요청");
@@ -82,7 +82,7 @@ public class PaymentController {
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentById(
             @PathVariable Long paymentId,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal DetailsUser user) {
         
         PaymentResponse paymentResponse = paymentService.getPaymentById(paymentId);
 
