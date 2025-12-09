@@ -50,7 +50,7 @@ public interface HistoryRepository extends JpaRepository<History, Long> {
                 SUM(
                     CAST(
                         JSON_UNQUOTE(
-                            JSON_EXTRACT(h.historyDetail, '$.purchase_paid_amount')
+                            JSON_EXTRACT(h.historyDetail, '$.totalAmount')
                         ) AS DECIMAL(18,2)
                     )
                 ),
