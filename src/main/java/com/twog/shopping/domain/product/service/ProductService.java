@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductService {
 
-    private final ProductRepository productRepository; // final 추가
+    private final ProductRepository productRepository;
 
     // 신상품 추가
     @Transactional

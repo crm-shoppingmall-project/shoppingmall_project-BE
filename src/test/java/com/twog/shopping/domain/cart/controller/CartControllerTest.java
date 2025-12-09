@@ -7,7 +7,6 @@ import com.twog.shopping.domain.cart.repository.CartRepository;
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.domain.member.service.DetailsUser;
-import com.twog.shopping.domain.member.service.DetailsUser;
 import com.twog.shopping.domain.product.entity.Product;
 import com.twog.shopping.domain.product.entity.ProductStatus;
 import com.twog.shopping.domain.product.repository.ProductRepository;
@@ -29,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CartControllerTest {
 
     @Autowired
-    private CartController cartController; // 컨트롤러를 직접 주입받아 테스트 (ServiceTest 스타일)
+    private CartController cartController;
 
     @Autowired
     private EntityManager entityManager;

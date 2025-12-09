@@ -70,7 +70,6 @@ class CartItemRepositoryTest {
                 .memberGrade(bronzeGrade)
                 .memberRole(UserRole.USER)
                 .memberStatus(MemberStatus.active)
-                // 날짜 필드를 빌더에서 직접 설정
                 .memberCreated(LocalDateTime.now())
                 .memberUpdated(LocalDateTime.now())
                 .memberLastAt(LocalDateTime.now())

@@ -2,7 +2,7 @@ package com.twog.shopping.domain.cart.repository;
 
 import com.twog.shopping.domain.cart.entity.Cart;
 import com.twog.shopping.domain.member.entity.*;
-import com.twog.shopping.domain.member.repository.MemberGradeRepository; // MemberGradeRepository import
+import com.twog.shopping.domain.member.repository.MemberGradeRepository;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.global.common.entity.GradeName;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,7 @@ public class CartRepositoryTest {
     private MemberRepository memberRepository;
 
     @Autowired
-    private MemberGradeRepository memberGradeRepository; // MemberGradeRepository 주입
+    private MemberGradeRepository memberGradeRepository;
 
     private Member testMember;
 
