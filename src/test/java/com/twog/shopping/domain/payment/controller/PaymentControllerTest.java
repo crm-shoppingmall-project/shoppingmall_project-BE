@@ -1,6 +1,8 @@
 package com.twog.shopping.domain.payment.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.twog.shopping.domain.cart.repository.CartItemRepository; // CartItemRepository import 추가
+import com.twog.shopping.domain.cart.repository.CartRepository; // CartRepository import 추가
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.entity.MemberGrade;
 import com.twog.shopping.domain.member.entity.MemberStatus;
@@ -69,6 +71,8 @@ class PaymentControllerTest {
     @Autowired private PaymentRepository paymentRepository;
     @Autowired private MemberGradeRepository memberGradeRepository;
     @Autowired private ReturnRequestRepository returnRequestRepository;
+    @Autowired private CartItemRepository cartItemRepository; // CartItemRepository 주입
+    @Autowired private CartRepository cartRepository; // CartRepository 주입
     @Autowired private EntityManager entityManager;
 
     // --- 테스트용 상수 및 변수 ---
@@ -92,6 +96,8 @@ class PaymentControllerTest {
         returnRequestRepository.deleteAllInBatch();
         purchaseDetailRepository.deleteAllInBatch();
         purchaseRepository.deleteAllInBatch();
+        cartItemRepository.deleteAllInBatch(); // CartItemRepository 삭제 추가
+        cartRepository.deleteAllInBatch();     // CartRepository 삭제 추가
         productRepository.deleteAllInBatch();
         memberRepository.deleteAllInBatch();
         memberGradeRepository.deleteAllInBatch();
@@ -171,6 +177,7 @@ class PaymentControllerTest {
 
     @Test
     @DisplayName("GET /api/v1/payments/confirm - 토스페이먼츠 결제 승인 성공")
+    @WithMockUser(username = TEST_MEMBER_EMAIL) // @WithMockUser 추가
     void confirmTossPayment_Success() throws Exception {
         // Given: 결제 초기화
         Long paymentId = paymentService.initiatePayment(paymentRequest, testMember.getMemberId());
