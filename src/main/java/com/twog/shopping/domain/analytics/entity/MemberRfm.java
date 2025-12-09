@@ -55,7 +55,7 @@ public class MemberRfm {
         this.rfmMonetary = monetary;
     }
 
-    public void updateRfmScore(int rScore, int fScore, int mScore){
+    public void updateRfmScores(int rScore, int fScore, int mScore){
         this.rfmRScore = rScore;
         this.rfmFScore = fScore;
         this.rfmMScore = mScore;

@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 public interface RfmAggregation {
 
     Long getMemberId();
-    LocalDateTime getLastPurchasseAt();
+    LocalDateTime getLastPurchaseAt();
     Long getFrequency();
     BigDecimal getMonetary();
 
