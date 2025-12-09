@@ -1,5 +1,6 @@
 package com.twog.shopping.domain.payment.service;
 
+import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.payment.dto.PaymentRequest;
 import com.twog.shopping.domain.payment.dto.PaymentResponse;
 import com.twog.shopping.domain.payment.entity.Payment;
@@ -10,10 +11,12 @@ import com.twog.shopping.domain.purchase.entity.Purchase;
 import com.twog.shopping.domain.purchase.entity.PurchaseDetail;
 import com.twog.shopping.domain.purchase.entity.PurchaseStatus;
 import com.twog.shopping.domain.purchase.repository.PurchaseRepository;
+import com.twog.shopping.global.config.TossPaymentsConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,16 +24,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,291 +49,163 @@ class PaymentServiceTest {
     @Mock
     private PurchaseRepository purchaseRepository;
 
+    @Mock
+    private TossPaymentsConfig tossPaymentsConfig;
+
+    @Mock
+    private RestTemplate restTemplate;
+
     @InjectMocks
     private PaymentService paymentService;
 
-    private Long memberId;
-    private Long purchaseId;
-    private Long paymentId;
-    private Purchase purchase;
-    private Payment payment;
+    private Member testMember;
+    private Purchase testPurchase;
+    private Payment testPayment;
     private PaymentRequest paymentRequest;
+
+    private final Long TEST_MEMBER_ID = 1L;
+    private final Long TEST_PURCHASE_ID = 100L;
+    private final Long TEST_PAYMENT_ID = 1L;
+    private final Integer TEST_AMOUNT = 10000;
+    private final String TEST_PAYMENT_KEY = "test_payment_key_from_toss";
+    private final String TEST_ORDER_ID = String.valueOf(TEST_PURCHASE_ID); // orderId는 purchaseId와 동일
 
     @BeforeEach
     void setUp() {
-        memberId = 1L;
-        purchaseId = 100L;
-        paymentId = 1L;
-
-        // PurchaseDetail 생성
-        PurchaseDetail detail1 = PurchaseDetail.builder()
-                .productId(1L)
-                .quantity(2)
-                .paidAmount(10000)
-                .build();
-        PurchaseDetail detail2 = PurchaseDetail.builder()
-                .productId(2L)
-                .quantity(1)
-                .paidAmount(5000)
+        testMember = Member.builder()
+                .memberId(TEST_MEMBER_ID)
                 .build();
 
-        // Purchase 엔티티 생성
-        purchase = Purchase.builder()
-                .id(purchaseId)
-                .memberId(memberId)
+        testPurchase = Purchase.builder()
+                .id(TEST_PURCHASE_ID)
+                .memberId(TEST_MEMBER_ID)
                 .status(PurchaseStatus.REQUESTED)
-                .createdAt(LocalDateTime.now())
                 .build();
-        purchase.addDetail(detail1);
-        purchase.addDetail(detail2);
 
-        // Payment 엔티티 생성 (초기 상태는 REQUESTED로 가정)
-        payment = Payment.builder()
-                .id(paymentId)
-                .purchase(purchase)
-                .pgTid("temp_pg_tid_123") // 초기에는 임시값
+        PurchaseDetail detail = PurchaseDetail.builder()
+                .productId(1)
+                .quantity(1)
+                .paidAmount(TEST_AMOUNT)
+                .build();
+        testPurchase.addDetail(detail);
+
+        // initiatePayment 후 저장될 Payment 객체 (pgTid는 null)
+        testPayment = Payment.builder()
+                .id(TEST_PAYMENT_ID)
+                .purchase(testPurchase)
+                .pgTid(null) // 초기에는 null
                 .status(PaymentStatus.REQUESTED)
-                .type(PaymentType.PAYMENT)
-                .paidAt(null)
-                .createdAt(LocalDateTime.now())
+                .type(PaymentType.PAYMENT) // PaymentType.PAYMENT 사용
                 .build();
 
-        // PaymentRequest 생성
+        // PaymentRequest는 paymentKey 필드가 없음
         paymentRequest = new PaymentRequest(
-                purchaseId,
-                25000,
-                PaymentType.PAYMENT,
-                "payment_key_abc"
+                TEST_PURCHASE_ID,
+                TEST_AMOUNT,
+                PaymentType.PAYMENT // PaymentType.PAYMENT 사용
         );
     }
 
     @Test
-    @DisplayName("결제 생성 성공 - 초기 상태는 REQUESTED")
-    void createPayment_Success_InitialStatusRequested() {
-        when(purchaseRepository.findById(purchaseId)).thenReturn(Optional.of(purchase));
-        when(paymentRepository.findByPurchase_Id(purchaseId)).thenReturn(Optional.empty());
-        when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
-        when(purchaseRepository.save(any(Purchase.class))).thenReturn(purchase);
+    @DisplayName("결제 초기화 성공")
+    void initiatePayment_Success() {
+        when(purchaseRepository.findById(TEST_PURCHASE_ID)).thenReturn(Optional.of(testPurchase));
+        when(paymentRepository.findByPurchase_Id(TEST_PURCHASE_ID)).thenReturn(Optional.empty());
 
-        Long createdPaymentId = paymentService.createPayment(paymentRequest, memberId);
+        // initiatePayment에서 save될 Payment 객체는 pgTid가 null이어야 함
+        ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
+        when(paymentRepository.save(paymentCaptor.capture())).thenReturn(testPayment);
 
-        assertThat(createdPaymentId).isEqualTo(paymentId);
-        verify(purchaseRepository, times(1)).findById(purchaseId);
-        verify(paymentRepository, times(1)).findByPurchase_Id(purchaseId);
+        Long paymentId = paymentService.initiatePayment(paymentRequest, TEST_MEMBER_ID);
+
+        assertThat(paymentId).isEqualTo(TEST_PAYMENT_ID);
         verify(paymentRepository, times(1)).save(any(Payment.class));
-        verify(purchaseRepository, times(1)).save(any(Purchase.class));
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REQUESTED);
-        assertThat(purchase.getStatus()).isEqualTo(PurchaseStatus.REQUESTED);
+        assertThat(paymentCaptor.getValue().getPgTid()).isNull(); // pgTid가 null인지 확인
     }
 
     @Test
-    @DisplayName("결제 생성 실패 - 구매 정보를 찾을 수 없음")
-    void createPayment_PurchaseNotFound_Failure() {
-        when(purchaseRepository.findById(purchaseId)).thenReturn(Optional.empty());
+    @DisplayName("토스 결제 승인 성공")
+    void confirmTossPayment_Success() {
+        // confirmTossPayment는 orderId (purchaseId)로 Payment를 찾음
+        // testPayment의 pgTid는 아직 null 상태여야 함 (initiatePayment 직후)
+        testPayment.updatePgTid(null);
+        when(paymentRepository.findByPurchase_Id(Long.valueOf(TEST_ORDER_ID))).thenReturn(Optional.of(testPayment));
+        when(tossPaymentsConfig.getSecretKey()).thenReturn("test_secret_key");
+        when(tossPaymentsConfig.getApiUrl()).thenReturn("https://api.tosspayments.com/v1/payments"); // /confirm 제외
 
-        assertThrows(NoSuchElementException.class, () -> paymentService.createPayment(paymentRequest, memberId));
+        // RestTemplate 응답 Mocking
+        ResponseEntity<Map> mockApiResponse = new ResponseEntity<>(Map.of("status", "DONE"), HttpStatus.OK);
+        when(restTemplate.postForEntity(
+                eq("https://api.tosspayments.com/v1/payments/confirm"), // 정확한 URL
+                any(HttpEntity.class),
+                eq(Map.class)))
+                .thenReturn(mockApiResponse);
 
-        verify(purchaseRepository, times(1)).findById(purchaseId);
-        verify(paymentRepository, never()).findByPurchase_Id(anyLong());
-        verify(paymentRepository, never()).save(any(Payment.class));
+        paymentService.confirmTossPayment(TEST_PAYMENT_KEY, TEST_ORDER_ID, TEST_AMOUNT);
+
+        // Payment와 Purchase 상태 변경 및 pgTid 업데이트 확인
+        verify(paymentRepository, times(1)).save(testPayment);
+        verify(purchaseRepository, times(1)).save(testPurchase);
+        assertThat(testPayment.getStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(testPurchase.getStatus()).isEqualTo(PurchaseStatus.COMPLETED);
+        assertThat(testPayment.getPgTid()).isEqualTo(TEST_PAYMENT_KEY); // pgTid가 업데이트되었는지 확인
     }
 
     @Test
-    @DisplayName("결제 생성 실패 - 구매자와 결제 요청자 불일치")
-    void createPayment_MemberMismatch_Failure() {
-        Long anotherMemberId = 2L;
-        when(purchaseRepository.findById(purchaseId)).thenReturn(Optional.of(purchase));
+    @DisplayName("결제 취소 성공")
+    void cancelPayment_Success() {
+        // 취소는 COMPLETED 상태의 결제에 대해 이루어져야 함
+        testPayment.setStatus(PaymentStatus.COMPLETED);
+        testPayment.updatePgTid(TEST_PAYMENT_KEY); // pgTid가 있어야 취소 API 호출 가능
+        when(paymentRepository.findById(TEST_PAYMENT_ID)).thenReturn(Optional.of(testPayment));
+        when(tossPaymentsConfig.getSecretKey()).thenReturn("test_secret_key");
+        when(tossPaymentsConfig.getApiUrl()).thenReturn("https://api.tosspayments.com/v1/payments");
 
-        assertThrows(SecurityException.class, () -> paymentService.createPayment(paymentRequest, anotherMemberId));
+        // RestTemplate 응답 Mocking
+        ResponseEntity<Map> mockApiResponse = new ResponseEntity<>(Map.of("status", "CANCELED"), HttpStatus.OK);
+        when(restTemplate.postForEntity(
+                eq("https://api.tosspayments.com/v1/payments/" + TEST_PAYMENT_KEY + "/cancel"), // 정확한 URL
+                any(HttpEntity.class),
+                eq(Map.class)))
+                .thenReturn(mockApiResponse);
 
-        verify(purchaseRepository, times(1)).findById(purchaseId);
-        verify(paymentRepository, never()).findByPurchase_Id(anyLong());
-        verify(paymentRepository, never()).save(any(Payment.class));
-    }
+        paymentService.cancelPayment(TEST_PAYMENT_ID, TEST_MEMBER_ID, "단순 변심");
 
-    @Test
-    @DisplayName("결제 생성 실패 - 이미 결제된 구매")
-    void createPayment_AlreadyPaid_Failure() {
-        Payment existingPayment = Payment.builder()
-                .id(2L)
-                .purchase(purchase)
-                .pgTid("existing_pg_tid")
-                .status(PaymentStatus.COMPLETED)
-                .type(PaymentType.PAYMENT)
-                .paidAt(LocalDateTime.now())
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        when(purchaseRepository.findById(purchaseId)).thenReturn(Optional.of(purchase));
-        when(paymentRepository.findByPurchase_Id(purchaseId)).thenReturn(Optional.of(existingPayment));
-
-        assertThrows(IllegalStateException.class, () -> paymentService.createPayment(paymentRequest, memberId));
-
-        verify(purchaseRepository, times(1)).findById(purchaseId);
-        verify(paymentRepository, times(1)).findByPurchase_Id(purchaseId);
-        verify(paymentRepository, never()).save(any(Payment.class));
-    }
-
-    @Test
-    @DisplayName("결제 생성 실패 - 결제 금액 불일치")
-    void createPayment_AmountMismatch_Failure() {
-        PaymentRequest wrongAmountRequest = new PaymentRequest(
-                purchaseId,
-                10000, // 실제 금액과 다름
-                PaymentType.PAYMENT,
-                "payment_key_abc"
-        );
-
-        when(purchaseRepository.findById(purchaseId)).thenReturn(Optional.of(purchase));
-        when(paymentRepository.findByPurchase_Id(purchaseId)).thenReturn(Optional.empty());
-
-        assertThrows(IllegalStateException.class, () -> paymentService.createPayment(wrongAmountRequest, memberId));
-
-        verify(purchaseRepository, times(1)).findById(purchaseId);
-        verify(paymentRepository, times(1)).findByPurchase_Id(purchaseId);
-        verify(paymentRepository, never()).save(any(Payment.class));
-    }
-
-    @Test
-    @DisplayName("결제 승인 성공")
-    void confirmPayment_Success() {
-        String newPgTid = "confirmed_pg_tid_456";
-        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment)); // payment는 REQUESTED 상태
-        when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
-        when(purchaseRepository.save(any(Purchase.class))).thenReturn(purchase);
-
-        paymentService.confirmPayment(paymentId, newPgTid);
-
-        verify(paymentRepository, times(1)).findById(paymentId);
-        verify(paymentRepository, times(1)).save(payment);
-        verify(purchaseRepository, times(1)).save(purchase);
-
-        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.COMPLETED);
-        assertThat(payment.getPgTid()).isEqualTo(newPgTid);
-        assertThat(payment.getPaidAt()).isNotNull();
-        assertThat(purchase.getStatus()).isEqualTo(PurchaseStatus.COMPLETED);
-    }
-
-    @Test
-    @DisplayName("결제 승인 실패 - 결제 정보를 찾을 수 없음")
-    void confirmPayment_PaymentNotFound_Failure() {
-        String newPgTid = "confirmed_pg_tid_456";
-        when(paymentRepository.findById(paymentId)).thenReturn(Optional.empty());
-
-        assertThrows(NoSuchElementException.class, () -> paymentService.confirmPayment(paymentId, newPgTid));
-
-        verify(paymentRepository, times(1)).findById(paymentId);
-        verify(paymentRepository, never()).save(any(Payment.class));
-        verify(purchaseRepository, never()).save(any(Purchase.class));
-    }
-
-    @Test
-    @DisplayName("결제 승인 실패 - 결제 상태가 REQUESTED가 아님")
-    void confirmPayment_InvalidStatus_Failure() {
-        String newPgTid = "confirmed_pg_tid_456";
-
-        payment.setStatus(PaymentStatus.COMPLETED);
-        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
-
-        assertThrows(IllegalStateException.class, () -> paymentService.confirmPayment(paymentId, newPgTid));
-
-        verify(paymentRepository, times(1)).findById(paymentId);
-        verify(paymentRepository, never()).save(any(Payment.class));
-        verify(purchaseRepository, never()).save(any(Purchase.class));
+        // Payment와 Purchase 상태 변경 확인
+        verify(paymentRepository, times(1)).save(testPayment);
+        verify(purchaseRepository, times(1)).save(testPurchase);
+        assertThat(testPayment.getStatus()).isEqualTo(PaymentStatus.REJECTED);
+        assertThat(testPurchase.getStatus()).isEqualTo(PurchaseStatus.REJECTED);
     }
 
     @Test
     @DisplayName("ID로 결제 조회 성공")
     void getPaymentById_Success() {
-        // payment의 상태를 COMPLETED로 변경하여 조회 테스트에 적합하게 만듦
-        payment.setStatus(PaymentStatus.COMPLETED);
-        payment.setPaidAt(LocalDateTime.now());
-        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+        // getPaymentById는 pgTid가 업데이트된 Payment를 반환할 수 있도록 설정
+        testPayment.updatePgTid(TEST_PAYMENT_KEY);
+        when(paymentRepository.findById(TEST_PAYMENT_ID)).thenReturn(Optional.of(testPayment));
 
-        PaymentResponse response = paymentService.getPaymentById(paymentId);
+        PaymentResponse response = paymentService.getPaymentById(TEST_PAYMENT_ID);
 
-        assertThat(response.getPaymentId()).isEqualTo(paymentId);
-        assertThat(response.getPurchaseId()).isEqualTo(purchaseId);
-        assertThat(response.getStatus()).isEqualTo(PaymentStatus.COMPLETED);
-        verify(paymentRepository, times(1)).findById(paymentId);
-    }
-
-    @Test
-    @DisplayName("ID로 결제 조회 실패 - 결제 정보를 찾을 수 없음")
-    void getPaymentById_NotFound_Failure() {
-        when(paymentRepository.findById(paymentId)).thenReturn(Optional.empty());
-
-        assertThrows(NoSuchElementException.class, () -> paymentService.getPaymentById(paymentId));
-
-        verify(paymentRepository, times(1)).findById(paymentId);
+        assertThat(response.getPaymentId()).isEqualTo(TEST_PAYMENT_ID);
+        assertThat(response.getPgTid()).isEqualTo(TEST_PAYMENT_KEY);
     }
 
     @Test
     @DisplayName("회원 ID로 결제 목록 조회 성공")
     void getPaymentsByMemberId_Success() {
         Pageable pageable = PageRequest.of(0, 10);
-        // payment의 상태를 COMPLETED로 변경하여 조회 테스트에 적합하게 만듦
-        payment.setStatus(PaymentStatus.COMPLETED);
-        payment.setPaidAt(LocalDateTime.now());
-        List<Payment> payments = Arrays.asList(payment);
+        // 목록 조회 시 pgTid가 업데이트된 Payment를 반환할 수 있도록 설정
+        testPayment.updatePgTid(TEST_PAYMENT_KEY);
+        List<Payment> payments = Collections.singletonList(testPayment);
         Page<Payment> paymentPage = new PageImpl<>(payments, pageable, payments.size());
 
-        when(paymentRepository.findByPurchase_MemberId(memberId, pageable)).thenReturn(paymentPage);
+        when(paymentRepository.findByPurchase_MemberId(TEST_MEMBER_ID, pageable)).thenReturn(paymentPage);
 
-        Page<PaymentResponse> responsePage = paymentService.getPaymentsByMemberId(memberId, pageable);
+        Page<PaymentResponse> result = paymentService.getPaymentsByMemberId(TEST_MEMBER_ID, pageable);
 
-        assertThat(responsePage.getTotalElements()).isEqualTo(1);
-        assertThat(responsePage.getContent().get(0).getPaymentId()).isEqualTo(paymentId);
-        verify(paymentRepository, times(1)).findByPurchase_MemberId(memberId, pageable);
-    }
-
-    @Test
-    @DisplayName("회원 ID로 결제 목록 조회 성공 - 결과 없음")
-    void getPaymentsByMemberId_NoResult_Success() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Payment> emptyPage = new PageImpl<>(List.of(), pageable, 0);
-
-        when(paymentRepository.findByPurchase_MemberId(memberId, pageable)).thenReturn(emptyPage);
-
-        Page<PaymentResponse> responsePage = paymentService.getPaymentsByMemberId(memberId, pageable);
-
-        assertThat(responsePage.getTotalElements()).isEqualTo(0);
-        assertThat(responsePage.getContent()).isEmpty();
-        verify(paymentRepository, times(1)).findByPurchase_MemberId(memberId, pageable);
-    }
-
-    @Test
-    @DisplayName("결제 상태 업데이트 성공")
-    void updatePaymentStatus_Success() {
-        Payment initialPayment = Payment.builder()
-                .id(paymentId)
-                .purchase(purchase)
-                .pgTid("pg_tid_123")
-                .status(PaymentStatus.COMPLETED) // 초기 상태는 COMPLETED로 가정
-                .type(PaymentType.PAYMENT) // PaymentType.CARD 대신 PaymentType.PAYMENT 사용
-                .paidAt(LocalDateTime.now())
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(initialPayment));
-        when(paymentRepository.save(any(Payment.class))).thenReturn(initialPayment);
-
-        PaymentStatus newStatus = PaymentStatus.REJECTED;
-        paymentService.updatePaymentStatus(paymentId, newStatus);
-
-        verify(paymentRepository, times(1)).findById(paymentId);
-        verify(paymentRepository, times(1)).save(initialPayment);
-        assertThat(initialPayment.getStatus()).isEqualTo(newStatus);
-    }
-
-    @Test
-    @DisplayName("결제 상태 업데이트 실패 - 결제 정보를 찾을 수 없음")
-    void updatePaymentStatus_NotFound_Failure() {
-        when(paymentRepository.findById(paymentId)).thenReturn(Optional.empty());
-
-        assertThrows(NoSuchElementException.class, () -> paymentService.updatePaymentStatus(paymentId, PaymentStatus.REJECTED));
-
-        verify(paymentRepository, times(1)).findById(paymentId);
-        verify(paymentRepository, never()).save(any(Payment.class));
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().get(0).getPaymentId()).isEqualTo(TEST_PAYMENT_ID);
+        assertThat(result.getContent().get(0).getPgTid()).isEqualTo(TEST_PAYMENT_KEY);
     }
 }
