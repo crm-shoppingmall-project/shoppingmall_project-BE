@@ -30,7 +30,6 @@ public class CampaignBatchScheduler {
 
         for (Campaign campaign : campaigns) {
             try {
-                // 서비스의 비즈니스 로직 호출
                 promotionService.executeCampaign(campaign.getCampaignId());
             } catch (Exception e) {
                 // 개별 캠페인 실패 시 로깅, 전체 배치 중단 방지

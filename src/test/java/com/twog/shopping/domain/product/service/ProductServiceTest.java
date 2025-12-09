@@ -1,17 +1,17 @@
 package com.twog.shopping.domain.product.service;
 
+import com.twog.shopping.domain.member.entity.UserRole;
 import com.twog.shopping.domain.product.dto.ProductRequestDto;
 import com.twog.shopping.domain.product.dto.ProductResponseDto;
 import com.twog.shopping.domain.product.entity.Product;
 import com.twog.shopping.domain.product.entity.ProductStatus;
 import com.twog.shopping.domain.product.repository.ProductRepository;
-import com.twog.shopping.domain.member.entity.UserRole;
+import com.twog.shopping.global.common.entity.GradeName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -125,7 +125,6 @@ class ProductServiceTest {
         List<ProductResponseDto> products = productService.findProducts(null, null, null, null, null);
 
         // then
-        // then
         assertThat(products).extracting("productName")
                 .contains(product1.getProductName(), "Test Product 2");
     }
@@ -175,7 +174,7 @@ class ProductServiceTest {
     @DisplayName("멤버 등급에 따라 할인된 가격이 적용된다")
     void findProductsWithDiscountTest() {
         // given
-        com.twog.shopping.global.common.entity.GradeName bronzeGrade = com.twog.shopping.global.common.entity.GradeName.BRONZE;
+        GradeName bronzeGrade = com.twog.shopping.global.common.entity.GradeName.BRONZE;
 
         // when
         // BRONZE 등급 (2% 할인): 10000 -> 9800

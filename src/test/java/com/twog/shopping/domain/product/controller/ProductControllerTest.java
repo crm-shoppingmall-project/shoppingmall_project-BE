@@ -207,7 +207,7 @@ class ProductControllerTest {
         @DisplayName("USER 권한으로 상품 조회 시 등급에 따른 할인이 적용된다")
         void verifyDiscount_AsUser() {
                 // given
-                // 확실하게 BRONZE 등급으로 설정
+                // USER 회원의 등급을 BRONZE 등급으로 설정
                 entityManager.createNativeQuery(
                                 "UPDATE member SET grade_code = (SELECT grade_code FROM member_grade WHERE grade_name = 'BRONZE' LIMIT 1) WHERE member_id = :memberId")
                                 .setParameter("memberId", userMemberId)
