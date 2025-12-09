@@ -40,12 +40,9 @@ public class PurchaseService {
 
     @Transactional
     public Purchase createPurchase(PurchaseRequest request, Long memberId) {
-<<<<<<< HEAD
-=======
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("회원 정보를 찾을 수 없습니다. (ID: " + memberId + ")"));
         GradeName memberGradeName = member.getMemberGrade().getGradeName();
->>>>>>> order/pay
 
         Purchase purchase = Purchase.builder()
                 .memberId(memberId)
@@ -81,16 +78,7 @@ public class PurchaseService {
             throw new IllegalStateException("총 결제 금액 불일치. 위변조가 의심됩니다. (서버 계산: " + serverCalculatedTotal + ", 요청: " + request.getTotalAmount() + ")");
         }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-        return savedPurchase.getId();
-=======
-//        return savedPurchase.getId(); // 수정: 저장된 객체의 ID 반환
         return savedPurchase;
->>>>>>> d9c78f8ca8cb9fe91690a73469a1cc9267106256
-=======
-        return savedPurchase;
->>>>>>> order/pay
     }
 
     @Transactional
