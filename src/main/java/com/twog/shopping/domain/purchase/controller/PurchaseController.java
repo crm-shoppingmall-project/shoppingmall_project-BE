@@ -1,10 +1,13 @@
 package com.twog.shopping.domain.purchase.controller;
 
+import com.twog.shopping.domain.log.aop.LogHistory;
+import com.twog.shopping.domain.log.entity.HistoryActionType;
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.service.DetailsUser;
 import com.twog.shopping.domain.member.service.MemberService;
 import com.twog.shopping.domain.purchase.dto.PurchaseRequest;
 import com.twog.shopping.domain.purchase.dto.PurchaseResponse;
+import com.twog.shopping.domain.purchase.entity.Purchase;
 import com.twog.shopping.domain.purchase.service.PurchaseService;
 import com.twog.shopping.global.common.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -30,16 +33,30 @@ public class PurchaseController {
      * [POST] /api/v1/purchases
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<Long>> createPurchase(
+    @LogHistory(actionType = HistoryActionType.PURCHASE_COMPLETED)
+    public ResponseEntity<ApiResponse<PurchaseResponse>> createPurchase(
             @Valid @RequestBody PurchaseRequest request,
             @AuthenticationPrincipal DetailsUser user) {
+<<<<<<< HEAD
 //        return ResponseEntity.status(HttpStatus.CREATED)
 //                .body(ApiResponse.success(HttpStatus.CREATED, user.toString()));
+=======
+
+//        Member member = memberService.getByEmailOrThrow(user.getUsername());
+//        Long purchaseId = purchaseService.createPurchase(request, member.getMemberId());
+
+        // 1) 현재 로그인 유저 이메일로 Member 조회
+>>>>>>> d9c78f8ca8cb9fe91690a73469a1cc9267106256
         Member member = memberService.getByEmailOrThrow(user.getUsername());
-        Long purchaseId = purchaseService.createPurchase(request, member.getMemberId());
+
+        // 2) 서비스에서 Purchase 엔티티까지 받아오기
+        Purchase purchase = purchaseService.createPurchase(request, member.getMemberId());
+
+        // 3) 엔티티 -> 응답 DTO 변환
+        PurchaseResponse response = PurchaseResponse.fromEntity(purchase);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(HttpStatus.CREATED, "주문이 성공적으로 생성되었습니다.", purchaseId));
+                .body(ApiResponse.success(HttpStatus.CREATED, "주문이 성공적으로 생성되었습니다.", response));
     }
 
     /**

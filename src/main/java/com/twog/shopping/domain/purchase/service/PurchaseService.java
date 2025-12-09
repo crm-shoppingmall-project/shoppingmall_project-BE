@@ -35,7 +35,7 @@ public class PurchaseService {
     private final CartItemRepository cartItemRepository;
 
     @Transactional
-    public Long createPurchase(PurchaseRequest request, Long memberId) {
+    public Purchase createPurchase(PurchaseRequest request, Long memberId) {
 
         Purchase purchase = Purchase.builder()
                 .memberId(memberId)
@@ -71,7 +71,12 @@ public class PurchaseService {
             throw new IllegalStateException("총 결제 금액 불일치. 위변조가 의심됩니다. (서버 계산: " + serverCalculatedTotal + ", 요청: " + request.getTotalAmount() + ")");
         }
 
+<<<<<<< HEAD
         return savedPurchase.getId();
+=======
+//        return savedPurchase.getId(); // 수정: 저장된 객체의 ID 반환
+        return savedPurchase;
+>>>>>>> d9c78f8ca8cb9fe91690a73469a1cc9267106256
     }
 
     @Transactional

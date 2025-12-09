@@ -4,12 +4,15 @@ import com.twog.shopping.domain.log.entity.HistoryActionType;
 import com.twog.shopping.domain.log.entity.HistoryRefTable;
 import com.twog.shopping.domain.log.service.HistoryService;
 import com.twog.shopping.domain.member.service.DetailsUser;
+import com.twog.shopping.domain.purchase.dto.PurchaseResponse;
+import com.twog.shopping.global.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -59,7 +62,7 @@ public class HistoryLogAspect {
 
         if (actionType == HistoryActionType.PURCHASE_COMPLETED) {
 
-           refId =  extractPurchaseInfo(result,detail);
+            refId = extractPurchaseInfo(result, detail);
 
         }
 
@@ -94,26 +97,66 @@ public class HistoryLogAspect {
     }
 
     private Long extractPurchaseInfo(Object result, Map<String, Object> detail) {
-        if (result == null) return null;
+        if (result == null) {
+            return null;
+        }
 
         try {
-            Class<?> clazz = result.getClass();
 
-            var getPurchaseId = clazz.getMethod("getId");
-            Object purchaseId = getPurchaseId.invoke(result);
-            detail.put("purchaseId", purchaseId);
+            // 0) 일단 body 변수에 실제 "내용"을 담자
+            Object body = result;
 
-            var getAmount = clazz.getMethod("getPaidAmount");
-            Object paidAmount = getAmount.invoke(result);
-            detail.put("paidAmount", paidAmount);
+            // 1) ResponseEntity<ApiResponse<PurchaseResponse>> 인 경우 → 껍데기 벗기기
+            if (result instanceof ResponseEntity<?> responseEntity) {
+                body = responseEntity.getBody();   // ApiResponse<PurchaseResponse>
+                if (body == null) {
+                    log.debug("[HistoryLogAspect] ResponseEntity body가 null 입니다.");
+                    return null;
+                }
+            }
 
-            return (Long) purchaseId;
+
+            // 2) ApiResponse<PurchaseResponse> 인 경우
+            if (body instanceof ApiResponse<?> apiResponse) {
+                Object data = apiResponse.getData();  // PurchaseResponse
+
+                if (data instanceof PurchaseResponse purchase) {
+                    return fillPurchaseDetail(purchase, detail);
+                } else {
+                    log.debug("[HistoryLogAspect] ApiResponse.data가 PurchaseResponse가 아닙니다. type={}",
+                            (data != null ? data.getClass().getName() : "null"));
+                    return null;
+                }
+            }
+
+            // 3) 그냥 PurchaseResponse인 경우 (ResponseEntity 안 씌워진 메서드 대비)
+            if (body instanceof PurchaseResponse purchase) {
+                return fillPurchaseDetail(purchase, detail);
+            }
+
+            log.debug("[HistoryLogAspect] 지원하지 않는 반환 타입입니다: {}", body.getClass().getName());
+            return null;
 
         } catch (Exception e) {
             log.debug("[HistoryLogAspect] 결과에서 구매 정보를 추출하는 데 실패했습니다.: {}", e.getMessage());
             return null;
         }
-
-
     }
+
+    private Long fillPurchaseDetail(PurchaseResponse purchase, Map<String, Object> detail) {
+        detail.put("purchaseId", purchase.getPurchaseId());
+        detail.put("memberId", purchase.getMemberId());
+        detail.put("status", purchase.getStatus());
+        detail.put("totalAmount", purchase.getTotalAmount());
+        if (purchase.getCreatedAt() != null) {
+            detail.put("createdAt", purchase.getCreatedAt().toString());
+            // 필요하면 포맷 지정도 가능:
+            // detail.put("createdAt", purchase.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        }
+        detail.put("items", purchase.getDetails());
+
+        return purchase.getPurchaseId();
+    }
+
 }
+

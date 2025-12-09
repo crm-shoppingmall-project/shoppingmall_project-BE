@@ -4,6 +4,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.repository.MemberRepository;
@@ -30,9 +32,14 @@ public class CsTicketService {
   }
 
   @Transactional
-  public CsTicketResponse createTicket(CsTicketRequest req) {
-    Member member = memberRepository.findById(req.memberId())
-        .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+  public CsTicketResponse createTicket(CsTicketRequest req, Long authenticatedMemberId) {
+    // 인증된 사용자 기반으로만 티켓 생성. 요청 DTO의 memberId는 무시한다.
+    if (authenticatedMemberId == null || authenticatedMemberId <= 0) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증 정보가 올바르지 않습니다.");
+    }
+
+    Member member = memberRepository.findById(authenticatedMemberId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "회원 정보를 찾을 수 없습니다."));
 
     CsTicket ticket = CsTicket.create(req, member);
     csTicketRepository.save(ticket);
