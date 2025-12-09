@@ -6,6 +6,7 @@ import com.twog.shopping.domain.payment.entity.Payment;
 import com.twog.shopping.domain.payment.entity.PaymentStatus;
 import com.twog.shopping.domain.payment.repository.PaymentRepository;
 import com.twog.shopping.domain.purchase.entity.Purchase;
+import com.twog.shopping.domain.purchase.entity.PurchaseDetail;
 import com.twog.shopping.domain.purchase.entity.PurchaseStatus;
 import com.twog.shopping.domain.purchase.repository.PurchaseRepository;
 import com.twog.shopping.global.config.TossPaymentsConfig;
@@ -22,6 +23,7 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.UUID; // UUID import 추가
 
 @Service
 @RequiredArgsConstructor
@@ -56,10 +58,11 @@ public class PaymentService {
 
         Payment payment = Payment.builder()
                 .purchase(purchase)
-                .pgTid(null) // 초기에는 pgTid를 null로 설정
+                // pgTid에 20자 이내의 임시 값 할당
+                .pgTid(UUID.randomUUID().toString().substring(0, 20)) // UUID 앞 20자 사용
                 .status(PaymentStatus.REQUESTED)
                 .type(request.getPaymentType())
-                .paidAt(null)
+                .paidAt(LocalDateTime.now()) // paidAt 필드에 현재 시간 설정
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);
@@ -70,7 +73,8 @@ public class PaymentService {
     @Transactional
     public void confirmTossPayment(String paymentKey, String orderId, Integer amount) {
 
-        Payment payment = paymentRepository.findByPurchase_Id(Long.valueOf(orderId))
+        // findByPurchase_Id 대신 findById를 사용하도록 수정
+        Payment payment = paymentRepository.findById(Long.valueOf(orderId))
                 .orElseThrow(() -> new NoSuchElementException("결제 정보를 찾을 수 없습니다. (OrderId: " + orderId + ")"));
 
         if (payment.getStatus() != PaymentStatus.REQUESTED) {
@@ -168,7 +172,7 @@ public class PaymentService {
                 purchase.updateStatus(PurchaseStatus.REJECTED);
                 purchaseRepository.save(purchase);
             } else {
-                // 결제 취소 실패 처리
+                // 결제 실패 처리
                 throw new RuntimeException("토스페이먼츠 취소 실패: " + response.getBody());
             }
         } catch (Exception e) {
@@ -193,5 +197,14 @@ public class PaymentService {
                 .orElseThrow(() -> new NoSuchElementException("결제 정보를 찾을 수 없습니다. (ID: " + paymentId + ")"));
         payment.setStatus(newStatus);
         paymentRepository.save(payment);
+    }
+
+    // 테스트를 위해 TossPaymentsConfig와 RestTemplate에 접근할 수 있는 getter 추가
+    public TossPaymentsConfig getTossPaymentsConfig() {
+        return tossPaymentsConfig;
+    }
+
+    public RestTemplate getRestTemplate() {
+        return restTemplate;
     }
 }

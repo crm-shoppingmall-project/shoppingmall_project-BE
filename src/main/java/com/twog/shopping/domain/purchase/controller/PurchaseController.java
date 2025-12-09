@@ -5,6 +5,7 @@ import com.twog.shopping.domain.member.service.DetailsUser;
 import com.twog.shopping.domain.member.service.MemberService;
 import com.twog.shopping.domain.purchase.dto.PurchaseRequest;
 import com.twog.shopping.domain.purchase.dto.PurchaseResponse;
+import com.twog.shopping.domain.purchase.entity.Purchase;
 import com.twog.shopping.domain.purchase.service.PurchaseService;
 import com.twog.shopping.global.common.dto.ApiResponse;
 import jakarta.validation.Valid;
@@ -30,17 +31,22 @@ public class PurchaseController {
      * [POST] /api/v1/purchases
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<Long>> createPurchase(
+    public ResponseEntity<ApiResponse<PurchaseResponse>> createPurchase(
             @Valid @RequestBody PurchaseRequest request,
             @AuthenticationPrincipal DetailsUser user) {
 //        return ResponseEntity.status(HttpStatus.CREATED)
 //                .body(ApiResponse.success(HttpStatus.CREATED, user.toString()));
         Member member = memberService.getByEmailOrThrow(user.getUsername());
-        Long purchaseId = purchaseService.createPurchase(request, member.getMemberId());
+//        Long purchaseId = purchaseService.createPurchase(request, member.getMemberId());
+        Purchase purchase = purchaseService.createPurchase(request, member.getMemberId());
+
+        PurchaseResponse response = PurchaseResponse.fromEntity(purchase);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(HttpStatus.CREATED, "주문이 성공적으로 생성되었습니다.", purchaseId));
+                .body(ApiResponse.success(HttpStatus.CREATED, "주문이 성공적으로 생성되었습니다.", response));
     }
+
+
 
     /**
      * 장바구니 상품으로 주문 생성
