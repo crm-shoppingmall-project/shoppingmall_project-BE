@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.twog.shopping.domain.member.entity.Member;
 import com.twog.shopping.domain.member.repository.MemberRepository;
@@ -53,7 +54,6 @@ class CsTicketServiceTest {
         // given
         Long memberId = 1L;
         CsTicketRequest req = new CsTicketRequest(
-            memberId,
             TicketChannel.WEB,
             "배송",
             "배송 언제 오나요?",
@@ -70,7 +70,7 @@ class CsTicketServiceTest {
         given(csTicketRepository.save(any(CsTicket.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        CsTicketResponse response = csTicketService.createTicket(req);
+        CsTicketResponse response = csTicketService.createTicket(req, memberId);
 
         // then
         assertThat(response).isNotNull();
@@ -84,7 +84,6 @@ class CsTicketServiceTest {
         // given
         Long memberId = 1L;
         CsTicketRequest req = new CsTicketRequest(
-            memberId,
             TicketChannel.WEB,
             "배송",
             "제목",
@@ -94,9 +93,9 @@ class CsTicketServiceTest {
         given(memberRepository.findById(memberId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> csTicketService.createTicket(req))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessage("회원 정보를 찾을 수 없습니다.");
+        assertThatThrownBy(() -> csTicketService.createTicket(req, memberId))
+            .isInstanceOf(ResponseStatusException.class)
+            .hasMessageContaining("회원 정보를 찾을 수 없습니다.");
     }
 
     @Test

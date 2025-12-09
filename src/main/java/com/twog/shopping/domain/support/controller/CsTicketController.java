@@ -10,15 +10,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import com.twog.shopping.domain.support.dto.CsTicketReplyRequest;
 import com.twog.shopping.domain.support.dto.CsTicketReplyResponse;
 import com.twog.shopping.domain.support.dto.CsTicketRequest;
 import com.twog.shopping.domain.support.dto.CsTicketResponse;
 import com.twog.shopping.domain.support.service.CsTicketService;
+import com.twog.shopping.domain.member.service.DetailsUser;
 
 
 @RestController
@@ -33,14 +34,17 @@ public class CsTicketController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CsTicketResponse createTicket(@RequestBody CsTicketRequest req) {
-        return csTicketService.createTicket(req);
+    public CsTicketResponse createTicket(@AuthenticationPrincipal DetailsUser user,
+                                         @RequestBody CsTicketRequest req) {
+        Long memberId = user.getMember().getMemberId();
+        return csTicketService.createTicket(req, memberId);
     }
 
     @GetMapping
     public Page<CsTicketResponse> getMyTickets(
-            @RequestParam Long memberId,
+            @AuthenticationPrincipal DetailsUser user,
             @PageableDefault(size = 10, sort = "csTicketCreatedAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Long memberId = user.getMember().getMemberId();
         return csTicketService.getMyTickets(memberId, pageable);
     }
 

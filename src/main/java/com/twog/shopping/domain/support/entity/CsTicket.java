@@ -58,7 +58,7 @@ public class CsTicket {
 			ticket.csTicketCategory = req.csTicketCategory();
 			ticket.csTicketTitle = req.csTicketTitle();
 			ticket.csTicketContent = req.csTicketContent();
-			ticket.csTicketStatus = TicketStatus.OPEN;
+			ticket.csTicketStatus = TicketStatus.RECEIVED;
 			ticket.csTicketCreatedAt = LocalDateTime.now();
 			return ticket;
 	}
