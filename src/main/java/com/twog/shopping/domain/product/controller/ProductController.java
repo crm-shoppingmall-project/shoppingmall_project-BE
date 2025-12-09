@@ -28,8 +28,10 @@ public class ProductController {
             @AuthenticationPrincipal DetailsUser user) {
 
         UserRole userRole = (user != null) ? user.getMember().getMemberRole() : null;
+        com.twog.shopping.global.common.entity.GradeName gradeName = (user != null) ? user.getGradeName() : null;
+
         List<ProductResponseDto> products = productService.findProducts(productId, productName, productCategory,
-                userRole);
+                userRole, gradeName);
         return ResponseEntity.ok(products);
     }
 

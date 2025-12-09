@@ -202,4 +202,37 @@ class ProductControllerTest {
                 assertThat(products.get(0).getProductId()).isEqualTo(product1Id);
                 assertThat(products.get(0).getProductStatus()).isEqualTo(ProductStatus.DELETED);
         }
+
+        @Test
+        @DisplayName("USER 권한으로 상품 조회 시 등급에 따른 할인이 적용된다")
+        void verifyDiscount_AsUser() {
+                // given
+                // 확실하게 BRONZE 등급으로 설정
+                entityManager.createNativeQuery(
+                                "UPDATE member SET grade_code = (SELECT grade_code FROM member_grade WHERE grade_name = 'BRONZE' LIMIT 1) WHERE member_id = :memberId")
+                                .setParameter("memberId", userMemberId)
+                                .executeUpdate();
+
+                entityManager.flush();
+                entityManager.clear();
+
+                mockLogin(userMemberId); // USER 로그인 (BRONZE)
+
+                // when
+                Member userMember = entityManager.find(Member.class, userMemberId);
+                DetailsUser detailsUser = new DetailsUser(userMember);
+
+                ResponseEntity<List<ProductResponseDto>> response = productController.getProducts(product1Id, null,
+                                null, detailsUser);
+
+                // then
+                List<ProductResponseDto> products = response.getBody();
+                assertThat(products).isNotEmpty();
+                ProductResponseDto product = products.get(0);
+
+                // BRONZE 등급 (2%) 할인 적용 확인
+                // 10000 -> 9800
+                assertThat(product.getProductPrice()).isEqualTo(10000);
+                assertThat(product.getDiscountPrice()).isEqualTo(9800);
+        }
 }

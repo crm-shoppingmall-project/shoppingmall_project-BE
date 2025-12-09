@@ -12,7 +12,6 @@ import java.util.List;
 /* 인증된 사용자의 정보를 security context에 전달하는 역할 */
 public class DetailsUser implements UserDetails {
 
-
     private final Member member;
 
     public DetailsUser(Member member) {
@@ -59,5 +58,9 @@ public class DetailsUser implements UserDetails {
     @Override
     public boolean isEnabled() {
         return member.getMemberStatus().equals("active");
+    }
+
+    public com.twog.shopping.global.common.entity.GradeName getGradeName() {
+        return member.getMemberGrade().getGradeName();
     }
 }

@@ -1,8 +1,10 @@
 package com.twog.shopping.domain.product.service;
 
 import com.twog.shopping.domain.product.entity.Product;
+import com.twog.shopping.domain.product.entity.ProductStatus;
 import com.twog.shopping.domain.product.repository.ProductRepository;
 import com.twog.shopping.domain.member.entity.UserRole;
+import com.twog.shopping.global.common.entity.GradeName;
 import com.twog.shopping.global.error.exception.ResourceNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -67,7 +69,7 @@ public class ProductService {
     // ADMIN이 아닌 경우 DELETED 상태의 상품은 조회되지 않음
     @Transactional(readOnly = true)
     public List<ProductResponseDto> findProducts(Integer productId, String productName, String productCategory,
-            UserRole userRole) {
+            UserRole userRole, GradeName gradeName) {
         Specification<Product> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -84,15 +86,14 @@ public class ProductService {
 
             // ADMIN이 아니면 삭제된 상품은 조회되지 않도록 필터링
             if (userRole != UserRole.ADMIN) {
-                predicates.add(criteriaBuilder.notEqual(root.get("productStatus"),
-                        com.twog.shopping.domain.product.entity.ProductStatus.DELETED));
+                predicates.add(criteriaBuilder.notEqual(root.get("productStatus"), ProductStatus.DELETED));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
 
         return productRepository.findAll(spec).stream()
-                .map(ProductResponseDto::new)
+                .map(product -> new ProductResponseDto(product, gradeName))
                 .toList();
     }
 }

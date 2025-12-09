@@ -254,11 +254,13 @@ class CartServiceTest {
 
         // then
         List<CartDetailDto> updatedDetails = cartService.getCartDetails(existingMemberId.intValue());
-        Optional<CartDetailDto> detail1 = updatedDetails.stream().filter(d -> d.getProductId() == productId1).findFirst();
+        Optional<CartDetailDto> detail1 = updatedDetails.stream().filter(d -> d.getProductId() == productId1)
+                .findFirst();
         assertThat(detail1).isPresent();
         assertThat(detail1.get().getCartQuantity()).isEqualTo(10);
 
-        Optional<CartDetailDto> detail2 = updatedDetails.stream().filter(d -> d.getProductId() == productId2).findFirst();
+        Optional<CartDetailDto> detail2 = updatedDetails.stream().filter(d -> d.getProductId() == productId2)
+                .findFirst();
         assertThat(detail2).isPresent();
         assertThat(detail2.get().getCartQuantity()).isEqualTo(20);
     }
