@@ -72,7 +72,7 @@ purchase_id BIGINT NOT NULL,
 payment_status ENUM('REQUESTED','REJECTED','COMPLETED') NOT NULL,
 payment_created DATETIME NOT NULL,
 payment_type ENUM('PAYMENT','REFUND') NOT NULL,
-payment_tid VARCHAR(20) NOT NULL,
+payment_tid VARCHAR(255) NOT NULL, -- 20 -> 255로 변경
 payment_paid_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY (payment_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
