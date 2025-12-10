@@ -5,6 +5,7 @@ import com.twog.shopping.domain.product.dto.ProductResponseDto;
 import com.twog.shopping.domain.product.service.ProductService;
 import com.twog.shopping.domain.member.entity.UserRole;
 import com.twog.shopping.domain.member.service.DetailsUser;
+import com.twog.shopping.global.common.entity.GradeName;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.access.prepost.PreAuthorize;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 public class ProductController {
 
@@ -28,7 +29,7 @@ public class ProductController {
             @AuthenticationPrincipal DetailsUser user) {
 
         UserRole userRole = (user != null) ? user.getMember().getMemberRole() : null;
-        com.twog.shopping.global.common.entity.GradeName gradeName = (user != null) ? user.getGradeName() : null;
+        GradeName gradeName = (user != null) ? user.getGradeName() : null;
 
         List<ProductResponseDto> products = productService.findProducts(productId, productName, productCategory,
                 userRole, gradeName);

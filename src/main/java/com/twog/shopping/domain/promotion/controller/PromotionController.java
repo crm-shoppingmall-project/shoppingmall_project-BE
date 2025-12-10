@@ -9,7 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/promotion")
+@RequestMapping("/api/v1/promotion")
 @RequiredArgsConstructor
 public class PromotionController {
 
@@ -49,6 +49,7 @@ public class PromotionController {
 
     // 이메일 클릭 추적 (USER/PUBLIC)
     @GetMapping("/click/{sendId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> trackEmailClick(@PathVariable Long sendId) {
         promotionService.trackEmailClick(sendId);
         return ResponseEntity.ok("이메일 확인이 처리되었습니다.");
