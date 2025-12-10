@@ -50,12 +50,33 @@ public class CsTicketController {
         return csTicketService.getMyTickets(memberId, page, size, sort);
     }
 
+    // 관리자용: 전체 티켓 조회
+    @GetMapping("/admin/all")
+    public Page<CsTicketResponse> getAllTickets(
+            @AuthenticationPrincipal DetailsUser user,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "csTicketCreatedAt,desc") String sort) {
+        UserRole role = user.getMember().getMemberRole();
+        return csTicketService.getAllTickets(role, page, size, sort);
+    }
+
     @GetMapping("/{id}")
     public CsTicketResponse getTicket(@AuthenticationPrincipal DetailsUser user,
                                       @PathVariable Long id) {
         Long memberId = user.getMember().getMemberId();
         UserRole role = user.getMember().getMemberRole();
         return csTicketService.getTicket(id, memberId, role);
+    }
+
+    // 티켓의 답변 목록 조회
+    @GetMapping("/{id}/replies")
+    public java.util.List<CsTicketReplyResponse> getReplies(
+            @AuthenticationPrincipal DetailsUser user,
+            @PathVariable Long id) {
+        Long memberId = user.getMember().getMemberId();
+        UserRole role = user.getMember().getMemberRole();
+        return csTicketService.getReplies(id, memberId, role);
     }
 
     @PostMapping(value = "/{id}/replies", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -65,5 +86,16 @@ public class CsTicketController {
                                               @ModelAttribute CsTicketReplyRequest req) {
         Long responderId = user.getMember().getMemberId();
         return csTicketService.createReply(id, responderId, req);
+    }
+
+    // 관리자용: 티켓 상태 변경
+    @PostMapping("/{id}/status")
+    public CsTicketResponse changeStatus(
+            @AuthenticationPrincipal DetailsUser user,
+            @PathVariable Long id,
+            @RequestParam String status) {
+        Long memberId = user.getMember().getMemberId();
+        UserRole role = user.getMember().getMemberRole();
+        return csTicketService.changeTicketStatus(id, memberId, role, status);
     }
 }

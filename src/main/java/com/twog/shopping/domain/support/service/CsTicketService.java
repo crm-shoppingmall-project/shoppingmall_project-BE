@@ -97,4 +97,63 @@ public class CsTicketService {
     
     return CsTicketReplyResponse.from(reply);
   }
+
+  // 관리자용: 전체 티켓 조회
+  @Transactional(readOnly = true)
+  public Page<CsTicketResponse> getAllTickets(UserRole role, int page, int size, String sort) {
+    if (role != UserRole.ADMIN) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리자만 전체 문의를 조회할 수 있습니다.");
+    }
+    
+    String[] sortParams = sort.split(",");
+    String sortField = sortParams[0];
+    Sort.Direction direction = sortParams.length > 1 && sortParams[1].equalsIgnoreCase("asc") 
+        ? Sort.Direction.ASC 
+        : Sort.Direction.DESC;
+    
+    Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+    Page<CsTicket> tickets = csTicketRepository.findAll(pageable);
+    return tickets.map(CsTicketResponse::from);
+  }
+
+  // 티켓의 답변 목록 조회
+  @Transactional(readOnly = true)
+  public java.util.List<CsTicketReplyResponse> getReplies(Long csTicketId, Long memberId, UserRole role) {
+    CsTicket ticket = csTicketRepository.findById(csTicketId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "문의 내역을 찾을 수 없습니다."));
+    
+    // 본인의 티켓이거나 ADMIN인 경우에만 조회 가능
+    boolean isOwner = ticket.getMember().getMemberId().equals(memberId);
+    boolean isAdmin = role == UserRole.ADMIN;
+    
+    if (!isOwner && !isAdmin) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 문의의 답변을 조회할 권한이 없습니다.");
+    }
+    
+    return csTicketReplyRepository.findByCsTicket_CsTicketIdOrderByReplyCreatedAtAsc(csTicketId)
+        .stream()
+        .map(CsTicketReplyResponse::from)
+        .toList();
+  }
+
+  // 관리자용: 티켓 상태 변경
+  @Transactional
+  public CsTicketResponse changeTicketStatus(Long csTicketId, Long memberId, UserRole role, String status) {
+    if (role != UserRole.ADMIN) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "관리자만 상태를 변경할 수 있습니다.");
+    }
+    
+    CsTicket ticket = csTicketRepository.findById(csTicketId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "문의 내역을 찾을 수 없습니다."));
+    
+    try {
+      com.twog.shopping.domain.support.entity.TicketStatus newStatus = 
+          com.twog.shopping.domain.support.entity.TicketStatus.valueOf(status);
+      ticket.changeStatus(newStatus);
+    } catch (IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "유효하지 않은 상태값입니다: " + status);
+    }
+    
+    return CsTicketResponse.from(ticket);
+  }
 }
