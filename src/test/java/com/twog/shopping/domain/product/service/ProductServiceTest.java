@@ -13,6 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -186,5 +189,35 @@ class ProductServiceTest {
         ProductResponseDto product = products.getFirst();
         assertThat(product.getDiscountPrice()).isEqualTo(9800);
         assertThat(product.getProductPrice()).isEqualTo(10000);
+    }
+
+    @Test
+    @DisplayName("상품 목록을 페이징하여 조회한다")
+    void getProductsPageTest() {
+        // given
+        // setUp에서 2개의 상품 생성됨 (product1: Category A, product2: Category B)
+        // 추가 상품 생성
+        for (int i = 0; i < 5; i++) {
+            productRepository.save(Product.builder()
+                    .productName("Paged Product " + i)
+                    .productCategory("Category P")
+                    .productPrice(1000 + i)
+                    .productQuantity(10)
+                    .productStatus(ProductStatus.ACTIVE)
+                    .build());
+        }
+
+        GradeName gradeName = GradeName.BRONZE;
+        Pageable pageable = PageRequest.of(0, 3); // 3개씩 조회
+
+        // when
+        Page<ProductResponseDto> productsPage = productService.getProductsPage(null, null, "Category P",
+                UserRole.USER, gradeName, pageable);
+
+        // then
+        assertThat(productsPage.getTotalElements()).isEqualTo(5);
+        assertThat(productsPage.getContent()).hasSize(3);
+        assertThat(productsPage.getContent().get(0).getProductCategory()).isEqualTo("Category P");
+        assertThat(productsPage.getTotalPages()).isEqualTo(2); // 5개니까 2페이지 (3+2)
     }
 }
