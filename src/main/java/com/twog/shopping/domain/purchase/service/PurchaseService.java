@@ -92,7 +92,10 @@ public class PurchaseService {
         Cart cart = cartRepository.findByMember_MemberId(memberId.intValue())
                 .orElseThrow(() -> new ResourceNotFoundException("장바구니를 찾을 수 없습니다."));
 
-        List<CartItem> cartItems = cart.getCartItems();
+        // ACTIVE 상태의 장바구니 아이템만 가져오기
+        List<CartItem> cartItems = cart.getCartItems().stream()
+                .filter(item -> item.getCartItemStatus() == CartItemStatus.ACTIVE)
+                .toList();
         if (cartItems.isEmpty()) {
             throw new IllegalStateException("장바구니에 상품이 없습니다.");
         }

@@ -1,8 +1,13 @@
 package com.twog.shopping.domain.member.service;
 
+import com.twog.shopping.domain.analytics.entity.MemberGradeHistory;
+import com.twog.shopping.domain.analytics.entity.MemberRfm;
+import com.twog.shopping.domain.analytics.repository.MemberGradeHistoryRepository;
+import com.twog.shopping.domain.analytics.repository.MemberRfmRepository;
 import com.twog.shopping.domain.member.dto.TokenDTO;
 import com.twog.shopping.domain.member.dto.request.LoginRequestDTO;
 import com.twog.shopping.domain.member.dto.request.SignUpRequestDTO;
+import com.twog.shopping.domain.member.dto.response.MemberAdminResponseDTO;
 import com.twog.shopping.domain.member.dto.response.MemberResponseDTO;
 import com.twog.shopping.domain.member.entity.*;
 import com.twog.shopping.domain.member.repository.MemberGradeRepository;
@@ -15,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -26,6 +32,8 @@ public class MemberService {
     private final MemberProfileRepository memberProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final MemberGradeRepository memberGradeRepository;
+    private final MemberRfmRepository memberRfmRepository;
+    private final MemberGradeHistoryRepository memberGradeHistoryRepository;
 
     // 회원가입
     @Transactional
@@ -115,6 +123,20 @@ public class MemberService {
     public Member getByEmailOrThrow(String email) {
         return memberRepository.findByMemberEmail(email)
                 .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다: " + email));
+    }
+
+    // 관리자용: 전체 회원 목록 조회 (RFM 점수, 등급 변경일 포함)
+    @Transactional(readOnly = true)
+    public List<MemberAdminResponseDTO> getAllMembersWithRfm() {
+        List<Member> members = memberRepository.findAll();
+        return members.stream()
+                .map(member -> {
+                    MemberRfm rfm = memberRfmRepository.findByMember(member).orElse(null);
+                    MemberGradeHistory gradeHistory = memberGradeHistoryRepository
+                            .findTopByMemberOrderByHistoryChangedDesc(member).orElse(null);
+                    return MemberAdminResponseDTO.fromEntity(member, rfm, gradeHistory);
+                })
+                .toList();
     }
 
 }

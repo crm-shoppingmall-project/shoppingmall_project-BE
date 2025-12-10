@@ -29,12 +29,17 @@ public class ProductService {
     // 신상품 추가
     @Transactional
     public ProductResponseDto createProduct(ProductRequestDto requestDto) {
+        // productStatus가 null이면 기본값 ACTIVE
+        ProductStatus status = requestDto.getProductStatus() != null 
+                ? requestDto.getProductStatus() 
+                : ProductStatus.ACTIVE;
+
         Product product = Product.builder()
                 .productName(requestDto.getProductName())
                 .productCategory(requestDto.getProductCategory())
                 .productPrice(requestDto.getProductPrice())
                 .productQuantity(requestDto.getProductQuantity())
-                .productStatus(requestDto.getProductStatus())
+                .productStatus(status)
                 .build();
         Product savedProduct = productRepository.save(product);
         return new ProductResponseDto(savedProduct);
@@ -46,12 +51,17 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
+        // productStatus가 null이면 기존 상태 유지
+        ProductStatus status = requestDto.getProductStatus() != null 
+                ? requestDto.getProductStatus() 
+                : product.getProductStatus();
+
         product.updateProductInfo(
                 requestDto.getProductName(),
                 requestDto.getProductCategory(),
                 requestDto.getProductQuantity(),
                 requestDto.getProductPrice(),
-                requestDto.getProductStatus());
+                status);
 
         return new ProductResponseDto(product);
     }

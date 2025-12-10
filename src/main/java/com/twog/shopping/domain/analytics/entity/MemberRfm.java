@@ -24,28 +24,28 @@ public class MemberRfm {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @Column(nullable = false)
+    @Column(name = "rfm_receny_days", nullable = false)
     private int rfmRecencyDays;
 
-    @Column(nullable = false)
+    @Column(name = "rfm_frequency", nullable = false)
     private int rfmFrequency;
 
-    @Column(nullable = false)
+    @Column(name = "rfm_monetary", nullable = false)
     private BigDecimal rfmMonetary;
 
-    @Column(nullable = false)
+    @Column(name = "rfm_r_score", nullable = false)
     private int rfmRScore;
 
-    @Column(nullable = false)
+    @Column(name = "rfm_f_score", nullable = false)
     private int rfmFScore;
 
-    @Column(nullable = false)
+    @Column(name = "rfm_m_score", nullable = false)
     private int rfmMScore;
 
-    @Column(nullable = false)
+    @Column(name = "rfm_total_score", nullable = false)
     private int rfmTotalScore;
 
-    @Column(nullable = false)
+    @Column(name = "rfm_snapshot", nullable = false)
     private LocalDate rfmSnapshot;
 
 
