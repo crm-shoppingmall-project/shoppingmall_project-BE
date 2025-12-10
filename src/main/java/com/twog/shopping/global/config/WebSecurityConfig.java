@@ -66,6 +66,9 @@ public class WebSecurityConfig {
 
 
         http
+                // 0) CORS 설정 활성화 (WebConfig 의 addCorsMappings 사용)
+                .cors(withDefaults -> {})   // 또는 .cors(Customizer.withDefaults())
+
                 // 1) CSRF 끄기 (JWT 사용)
                 .csrf(AbstractHttpConfigurer::disable)
 
@@ -82,7 +85,7 @@ public class WebSecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        .requestMatchers("/api/v1/members/login", "/api/v1/members/signup").permitAll()
+                        .requestMatchers("/api/v1/members/login", "/api/v1/members/signup","/login","/api/v1/products","/api/v1/products/page").permitAll()
 
                         // 토스페이먼츠 관련 경로 및 프론트엔드 페이지 허용
                         .requestMatchers(
