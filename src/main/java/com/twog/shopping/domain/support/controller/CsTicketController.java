@@ -60,7 +60,6 @@ public class CsTicketController {
 
     @PostMapping("/{id}/replies")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('ADMIN')")
     public CsTicketReplyResponse createReply(@AuthenticationPrincipal DetailsUser user,
                                               @PathVariable Long id, 
                                               @RequestBody CsTicketReplyRequest req) {
