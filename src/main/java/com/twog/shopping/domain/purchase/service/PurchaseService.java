@@ -2,6 +2,7 @@ package com.twog.shopping.domain.purchase.service;
 
 import com.twog.shopping.domain.cart.entity.Cart;
 import com.twog.shopping.domain.cart.entity.CartItem;
+import com.twog.shopping.domain.cart.entity.CartItemStatus;
 import com.twog.shopping.domain.cart.repository.CartItemRepository;
 import com.twog.shopping.domain.cart.repository.CartRepository;
 import com.twog.shopping.domain.member.entity.Member; // Member import 추가
@@ -26,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -145,10 +147,29 @@ public class PurchaseService {
 
         purchase.updateStatus(PurchaseStatus.REJECTED);
 
+        // 장바구니 복원
+        Cart cart = cartRepository.findByMember_MemberId(memberId.intValue())
+                .orElseThrow(() -> new ResourceNotFoundException("장바구니를 찾을 수 없습니다."));
+
         for (PurchaseDetail detail : purchase.getDetails()) {
             Product product = productRepository.findById(detail.getProductId())
                     .orElseThrow(() -> new NoSuchElementException("상품 정보를 찾을 수 없습니다. (ID: " + detail.getProductId() + ")"));
+            
+            // 재고 복원
             product.decreaseStock(-detail.getQuantity());
+
+            // 장바구니에 기존 아이템이 있는지 DB에서 직접 조회
+            Optional<CartItem> existingItemOpt = cartItemRepository.findByCart_CartIdAndProduct_ProductIdAndCartItemStatus(
+                    cart.getCartId(), product.getProductId(), CartItemStatus.ACTIVE);
+
+            if (existingItemOpt.isPresent()) {
+                // 기존 아이템이 있으면 수량만 증가
+                existingItemOpt.get().addQuantity(detail.getQuantity());
+            } else {
+                // 없으면 새로 생성
+                CartItem cartItem = CartItem.createCartItem(cart, product, detail.getQuantity());
+                cartItemRepository.save(cartItem);
+            }
         }
     }
 
