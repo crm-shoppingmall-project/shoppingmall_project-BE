@@ -17,8 +17,7 @@ public class PaymentResponse {
     private PaymentStatus status;
     private PaymentType type;
     private LocalDateTime paidAt;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private LocalDateTime paymentCreated;
 
     public static PaymentResponse fromEntity(Payment payment) {
         return PaymentResponse.builder()
@@ -28,8 +27,7 @@ public class PaymentResponse {
                 .status(payment.getStatus())
                 .type(payment.getType())
                 .paidAt(payment.getPaidAt())
-                .createdAt(payment.getCreatedAt())
-                .updatedAt(payment.getUpdatedAt())
+                .paymentCreated(payment.getPaymentCreated())
                 .build();
     }
 }

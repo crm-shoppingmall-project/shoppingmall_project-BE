@@ -1,6 +1,7 @@
 package com.twog.shopping.domain.payment.controller;
 
 import com.twog.shopping.domain.member.entity.Member;
+import com.twog.shopping.domain.member.service.DetailsUser;
 import com.twog.shopping.domain.member.service.MemberService;
 import com.twog.shopping.domain.payment.dto.PaymentRequest;
 import com.twog.shopping.domain.payment.dto.PaymentResponse;
@@ -32,7 +33,7 @@ public class PaymentController {
     @PostMapping("/initiate")
     public ResponseEntity<ApiResponse<Map<String, Object>>> initiatePayment(
             @Valid @RequestBody PaymentRequest request,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal DetailsUser user) {
 
         Member member = memberService.getByEmailOrThrow(user.getUsername());
         Long paymentId = paymentService.initiatePayment(request, member.getMemberId());
@@ -65,7 +66,7 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<Void>> cancelPayment(
             @PathVariable Long paymentId,
             @RequestBody Map<String, String> requestBody,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal DetailsUser user) {
 
         Optional<Member> member = memberService.findByEmail(user.getUsername());
         String cancelReason = requestBody.getOrDefault("cancelReason", "고객 요청");
@@ -81,7 +82,7 @@ public class PaymentController {
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentById(
             @PathVariable Long paymentId,
-            @AuthenticationPrincipal User user) {
+            @AuthenticationPrincipal DetailsUser user) {
         
         PaymentResponse paymentResponse = paymentService.getPaymentById(paymentId);
 

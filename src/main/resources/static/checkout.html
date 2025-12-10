@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>결제 테스트 , Checkout</title>
+</head>
+<body>
+<h1>결제 테스트 페이지</h1>
+
+<!-- JWT 입력 -->
+<div>
+    <label>Access Token(JWT): </label>
+    <input id="accessToken" type="text" style="width: 500px;">
+    <button id="saveTokenButton">토큰 저장</button>
+</div>
+<hr>
+
+<!-- 주문 정보 -->
+<div>
+    <label>주문 ID (purchaseId): </label>
+    <input id="purchaseId" type="number" placeholder="예: 591">
+</div>
+
+<div>
+    <label>결제 금액(원): </label>
+    <input id="amount" type="number" value="10000">
+</div>
+
+<div>
+    <label>주문 이름: </label>
+    <input id="orderName" type="text" value="상품 결제">
+</div>
+
+<button id="payButton">토스페이먼츠로 결제하기</button>
+
+<p id="log"></p>
+
+<script src="https://js.tosspayments.com/v1"></script>
+<script>
+    const clientKey = "test_ck_P9BRQmyarYg55ZeE5b5X3J07KzLN";
+
+    const saveTokenButton = document.getElementById("saveTokenButton");
+    const accessTokenInput = document.getElementById("accessToken");
+    const payButton = document.getElementById("payButton");
+    const log = document.getElementById("log");
+
+    // 저장된 토큰 자동 로드
+    (function loadToken() {
+        const saved = localStorage.getItem("accessToken");
+        if (saved) accessTokenInput.value = saved;
+    })();
+
+    // 토큰 저장
+    saveTokenButton.addEventListener("click", () => {
+        const token = accessTokenInput.value.trim();
+        if (!token) {
+            alert("토큰을 입력하세요!");
+            return;
+        }
+        localStorage.setItem("accessToken", token);
+        alert("토큰 저장 완료!");
+    });
+
+    // 결제 버튼 클릭 → initiate → paymentId → toss requestPayment
+    payButton.addEventListener("click", async () => {
+        try {
+            const token = accessTokenInput.value.trim() || localStorage.getItem("accessToken");
+            if (!token) {
+                alert("JWT 토큰을 먼저 저장하세요.");
+                return;
+            }
+
+            const purchaseId = Number(document.getElementById("purchaseId").value);
+            const amount = Number(document.getElementById("amount").value);
+            const orderName = document.getElementById("orderName").value;
+
+            if (!purchaseId) {
+                alert("주문 ID(purchaseId)를 입력하세요.");
+                return;
+            }
+
+            // 🔥 [1] 결제 초기화 → paymentId 생성
+            const initiateResponse = await fetch("/api/v1/payments/initiate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify({
+                    purchaseId: purchaseId,
+                    paymentType: "PAYMENT",
+                    amount: amount
+                })
+            });
+
+            if (!initiateResponse.ok) {
+                const err = await initiateResponse.text();
+                throw new Error("결제 초기화 실패: " + err);
+            }
+
+            const initJson = await initiateResponse.json();
+            const paymentId = initJson.data.paymentId;
+
+            // orderId = paymentId 패딩한 값
+            const orderIdForToss = String(paymentId).padStart(6, "0");
+
+            log.innerText = `결제 초기화 성공 → paymentId=${paymentId}`;
+
+            // 🔥 [2] 토스 결제창 호출
+            const tossPayments = TossPayments(clientKey);
+
+            await tossPayments.requestPayment("CARD", {
+                amount: amount,
+                orderId: orderIdForToss,
+                orderName: orderName,
+                successUrl: window.location.origin + "/success.html",
+                failUrl: window.location.origin + "/fail.html"
+            });
+
+        } catch (e) {
+            console.error(e);
+            log.innerText = "에러 발생: " + e.message;
+        }
+    });
+</script>
+
+</body>
+</html>

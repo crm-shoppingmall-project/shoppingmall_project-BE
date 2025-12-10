@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>결제 실패</title>
+</head>
+<body>
+<h1>결제에 실패했습니다.</h1>
+
+<div id="info"></div>
+
+<a href="/checkout.html">다시 결제하기</a>
+
+<script>
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get("code");
+    const message = url.searchParams.get("message");
+    const orderId = url.searchParams.get("orderId");
+
+    const infoDiv = document.getElementById("info");
+    infoDiv.innerHTML = `
+        <p>에러 코드: ${code}</p>
+        <p>메시지: ${message}</p>
+        <p>orderId: ${orderId}</p>
+    `;
+</script>
+
+</body>
+</html>

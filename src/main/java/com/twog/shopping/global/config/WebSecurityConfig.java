@@ -89,7 +89,9 @@ public class WebSecurityConfig {
                                 "/payment_frontend.html",
                                 "/api/v1/payments/initiate",
                                 "/api/v1/payments/confirm",
-                                "/fail"
+                                "/checkout.html",
+                                "/success.html"
+//                                "/fail.html"
                         ).permitAll()
 
                         // 그 외는 인증 필요

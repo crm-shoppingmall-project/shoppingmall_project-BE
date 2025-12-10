@@ -23,7 +23,7 @@ public class Payment {
     @JoinColumn(name = "purchase_id", nullable = false)
     private Purchase purchase;
 
-    @Column(name = "pg_tid", nullable = false, unique = true, length = 20) // length 속성 유지
+    @Column(name = "payment_tid", nullable = false, unique = true, length = 255) // 20 -> 255로 변경
     private String pgTid;
 
     @Enumerated(EnumType.STRING)
@@ -34,23 +34,15 @@ public class Payment {
     @Column(name = "payment_type", nullable = false)
     private PaymentType type;
 
-    @Column(name = "paid_at")
+    @Column(name = "payment_paid_at")
     private LocalDateTime paidAt;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Column(name = "payment_created", nullable = false, updatable = false)
+    private LocalDateTime paymentCreated;
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
+        this.paymentCreated = LocalDateTime.now();
     }
 
     public void setStatus(PaymentStatus newStatus) {

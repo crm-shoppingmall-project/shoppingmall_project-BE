@@ -90,6 +90,8 @@ public class CustomAuthFailureHandler implements AuthenticationFailureHandler {
 
 
 
+
+
         historyService.saveHistory(
                 null,
                 HistoryActionType.LOGIN_FAIL,
@@ -97,6 +99,8 @@ public class CustomAuthFailureHandler implements AuthenticationFailureHandler {
                 request,
                 null,
                 null
+
+
 
 
         );

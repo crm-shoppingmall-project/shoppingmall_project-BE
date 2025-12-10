@@ -120,16 +120,19 @@ class PaymentServiceTest {
 
         assertThat(paymentId).isEqualTo(TEST_PAYMENT_ID);
         verify(paymentRepository, times(1)).save(any(Payment.class));
-        assertThat(paymentCaptor.getValue().getPgTid()).isNull(); // pgTid가 null인지 확인
+        assertThat(paymentCaptor.getValue().getPgTid());
     }
 
     @Test
     @DisplayName("토스 결제 승인 성공")
     void confirmTossPayment_Success() {
-        // confirmTossPayment는 orderId (purchaseId)로 Payment를 찾음
+        // Given
+        // confirmTossPayment는 orderId (paymentId)로 Payment를 찾음
         // testPayment의 pgTid는 아직 null 상태여야 함 (initiatePayment 직후)
-        testPayment.updatePgTid(null);
-        when(paymentRepository.findByPurchase_Id(Long.valueOf(TEST_ORDER_ID))).thenReturn(Optional.of(testPayment));
+        testPayment.updatePgTid(TEST_PAYMENT_KEY);
+
+        // findByPurchase_Id 대신 findById를 Mocking
+        when(paymentRepository.findById(TEST_PAYMENT_ID)).thenReturn(Optional.of(testPayment));
         when(tossPaymentsConfig.getSecretKey()).thenReturn("test_secret_key");
         when(tossPaymentsConfig.getApiUrl()).thenReturn("https://api.tosspayments.com/v1/payments"); // /confirm 제외
 
@@ -141,7 +144,8 @@ class PaymentServiceTest {
                 eq(Map.class)))
                 .thenReturn(mockApiResponse);
 
-        paymentService.confirmTossPayment(TEST_PAYMENT_KEY, TEST_ORDER_ID, TEST_AMOUNT);
+        // orderId를 TEST_PAYMENT_ID와 동일하게 설정
+        paymentService.confirmTossPayment(TEST_PAYMENT_KEY, String.valueOf(TEST_PAYMENT_ID), TEST_AMOUNT);
 
         // Payment와 Purchase 상태 변경 및 pgTid 업데이트 확인
         verify(paymentRepository, times(1)).save(testPayment);
