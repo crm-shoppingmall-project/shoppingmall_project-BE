@@ -1,15 +1,13 @@
 package com.twog.shopping.domain.support.controller;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -43,9 +41,11 @@ public class CsTicketController {
     @GetMapping
     public Page<CsTicketResponse> getMyTickets(
             @AuthenticationPrincipal DetailsUser user,
-            @PageableDefault(size = 10, sort = "csTicketCreatedAt", direction = Sort.Direction.DESC) Pageable pageable) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "csTicketCreatedAt,desc") String sort) {
         Long memberId = user.getMember().getMemberId();
-        return csTicketService.getMyTickets(memberId, pageable);
+        return csTicketService.getMyTickets(memberId, page, size, sort);
     }
 
     @GetMapping("/{id}")

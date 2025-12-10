@@ -18,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -103,7 +102,9 @@ class CsTicketServiceTest {
     void getMyTickets_Success() {
         // given
         Long memberId = 1L;
-        Pageable pageable = PageRequest.of(0, 10);
+        int page = 0;
+        int size = 10;
+        String sort = "csTicketCreatedAt,desc";
         
         // Member member = new Member(); // 아래에서 mock 처리할 것이므로 제거됨
         // 필요하다면 리플렉션으로 ID를 설정할 수도 있지만, 그냥 ticket 자체를 mock하는 방법도 있습니다.
@@ -120,10 +121,10 @@ class CsTicketServiceTest {
         // ... 필요하다면 다른 필드들도 추가 설정
 
         Page<CsTicket> tickets = new PageImpl<>(List.of(ticket));
-        given(csTicketRepository.findByMember_MemberId(memberId, pageable)).willReturn(tickets);
+        given(csTicketRepository.findByMember_MemberId(any(Long.class), any(Pageable.class))).willReturn(tickets);
 
         // when
-        Page<CsTicketResponse> result = csTicketService.getMyTickets(memberId, pageable);
+        Page<CsTicketResponse> result = csTicketService.getMyTickets(memberId, page, size, sort);
 
         // then
         assertThat(result).hasSize(1);

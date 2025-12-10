@@ -1,7 +1,9 @@
 package com.twog.shopping.domain.support.service;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
@@ -48,7 +50,14 @@ public class CsTicketService {
   }
 
   @Transactional(readOnly = true)
-  public Page<CsTicketResponse> getMyTickets(Long memberId, Pageable pageable) {
+  public Page<CsTicketResponse> getMyTickets(Long memberId, int page, int size, String sort) {
+    String[] sortParams = sort.split(",");
+    String sortField = sortParams[0];
+    Sort.Direction direction = sortParams.length > 1 && sortParams[1].equalsIgnoreCase("asc") 
+        ? Sort.Direction.ASC 
+        : Sort.Direction.DESC;
+    
+    Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
     Page<CsTicket> tickets = csTicketRepository.findByMember_MemberId(memberId, pageable);
     return tickets.map(CsTicketResponse::from);
   }
@@ -56,14 +65,14 @@ public class CsTicketService {
   @Transactional(readOnly = true)
   public CsTicketResponse getTicket(Long csTicketId) {
     CsTicket ticket = csTicketRepository.findById(csTicketId)
-        .orElseThrow(() -> new RuntimeException("문의 내역을 찾을 수 없습니다."));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "문의 내역을 찾을 수 없습니다."));
     return CsTicketResponse.from(ticket);
   }
 
   @Transactional
   public CsTicketReplyResponse createReply(Long csTicketId, CsTicketReplyRequest req) {
     CsTicket ticket = csTicketRepository.findById(csTicketId)
-        .orElseThrow(() -> new RuntimeException("문의 내역을 찾을 수 없습니다."));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "문의 내역을 찾을 수 없습니다."));
     
     CsTicketReply reply = CsTicketReply.create(ticket, req.replyResponderId(), req.replyContent());
     csTicketReplyRepository.save(reply);
