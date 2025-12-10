@@ -8,6 +8,8 @@ import com.twog.shopping.domain.member.repository.MemberGradeRepository;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.domain.promotion.dto.CampaignRequestDto;
 import com.twog.shopping.domain.promotion.dto.CampaignResponseDto;
+import com.twog.shopping.domain.promotion.dto.CampaignDetailResponseDto;
+import com.twog.shopping.domain.promotion.dto.MessageSendLogResponseDto;
 import com.twog.shopping.domain.promotion.entity.Campaign;
 import com.twog.shopping.domain.promotion.entity.CampaignStatus;
 import com.twog.shopping.domain.promotion.entity.MessageSendLog;
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest; // PageRequest import 추가
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -229,5 +232,97 @@ class PromotionServiceTest {
                 // then
                 MessageSendLog updatedLog = messageSendLogRepository.findById(log.getSendId()).orElseThrow();
                 assertThat(updatedLog.getSendClicked()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("캠페인 목록을 페이징 조회한다")
+        void getCampaignsPageTest() {
+                // given
+                for (int i = 0; i < 5; i++) {
+                        campaignRepository.save(Campaign.builder()
+                                        .campaignName("Paged Campaign " + i)
+                                        .campaignContent("Content")
+                                        .campaignScheduled(LocalDateTime.now().plusDays(1))
+                                        .campaignStatus(CampaignStatus.SCHEDULED)
+                                        .build());
+                }
+
+                PageRequest pageable = PageRequest.of(0, 3);
+
+                // when
+                org.springframework.data.domain.Page<CampaignResponseDto> result = promotionService
+                                .getCampaignsPage(pageable);
+
+                // then
+                assertThat(result).isNotNull();
+                assertThat(result.getContent()).hasSize(3);
+                assertThat(result.getTotalElements()).isGreaterThanOrEqualTo(5);
+        }
+
+        @Test
+        @DisplayName("캠페인 상세 정보를 조회하면 통계 데이터도 포함된다")
+        void getCampaignDetailTest() {
+                // given
+                Campaign campaign = campaignRepository.save(Campaign.builder()
+                                .campaignName("Detail Campaign")
+                                .campaignContent("Content")
+                                .campaignScheduled(LocalDateTime.now().minusHours(2))
+                                .campaignStatus(CampaignStatus.RUNNING)
+                                .build());
+
+                Member member = memberRepository.findById(memberId).orElseThrow();
+
+                // 2개의 로그 생성, 1개는 클릭됨
+                MessageSendLog log1 = messageSendLogRepository.save(MessageSendLog.builder()
+                                .campaign(campaign)
+                                .member(member)
+                                .build());
+                log1.markAsClicked();
+                messageSendLogRepository.save(log1);
+
+                MessageSendLog log2 = messageSendLogRepository.save(MessageSendLog.builder()
+                                .campaign(campaign)
+                                .member(member)
+                                .build());
+
+                // when
+                CampaignDetailResponseDto detail = promotionService.getCampaignDetail(campaign.getCampaignId());
+
+                // then
+                assertThat(detail.getCampaignName()).isEqualTo("Detail Campaign");
+                assertThat(detail.getTotalSentCount()).isEqualTo(2);
+                assertThat(detail.getTotalClickedCount()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("캠페인 발송 이력을 페이징 조회한다")
+        void getCampaignSendLogsTest() {
+                // given
+                Campaign campaign = campaignRepository.save(Campaign.builder()
+                                .campaignName("Log Campaign")
+                                .campaignContent("Content")
+                                .campaignScheduled(LocalDateTime.now().minusHours(2))
+                                .campaignStatus(CampaignStatus.RUNNING)
+                                .build());
+
+                Member member = memberRepository.findById(memberId).orElseThrow();
+
+                for (int i = 0; i < 5; i++) {
+                        messageSendLogRepository.save(MessageSendLog.builder()
+                                        .campaign(campaign)
+                                        .member(member)
+                                        .build());
+                }
+
+                PageRequest pageable = PageRequest.of(0, 3);
+
+                // when
+                org.springframework.data.domain.Page<MessageSendLogResponseDto> logs = promotionService
+                                .getCampaignSendLogs(campaign.getCampaignId(), pageable);
+
+                // then
+                assertThat(logs).isNotNull();
+                assertThat(logs.getContent()).hasSize(3);
+                assertThat(logs.getTotalElements()).isEqualTo(5);
         }
 }
