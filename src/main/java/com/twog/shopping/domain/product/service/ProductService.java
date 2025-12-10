@@ -58,8 +58,7 @@ public class ProductService {
     @Transactional
     public void deleteProduct(int productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
         // 논리적 삭제 수행
         product.delete();
