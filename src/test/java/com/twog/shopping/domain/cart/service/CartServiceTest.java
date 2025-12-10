@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -236,6 +238,27 @@ class CartServiceTest {
         assertThat(detail1).isPresent();
         assertThat(detail1.get().getCartQuantity()).isEqualTo(3);
         assertThat(detail1.get().isOrderable()).isTrue();
+    }
+
+    @Test
+    @DisplayName("장바구니 상세 정보를 페이징하여 조회한다")
+    void getCartDetailsPageTest() {
+        // given
+        cartService.addItemToCart(existingMemberId.intValue(), productId1, 3);
+        cartService.addItemToCart(existingMemberId.intValue(), productId2, 1);
+        PageRequest pageable = PageRequest.of(0, 5);
+
+        // when
+        Page<CartDetailDto> cartDetailsPage = cartService.getCartDetailsPage(existingMemberId.intValue(), pageable);
+
+        // then
+        assertThat(cartDetailsPage.getTotalElements()).isEqualTo(2);
+        assertThat(cartDetailsPage.getContent()).hasSize(2);
+
+        Optional<CartDetailDto> detail1 = cartDetailsPage.getContent().stream()
+                .filter(d -> d.getProductId() == productId1).findFirst();
+        assertThat(detail1).isPresent();
+        assertThat(detail1.get().getCartQuantity()).isEqualTo(3);
     }
 
     @Test

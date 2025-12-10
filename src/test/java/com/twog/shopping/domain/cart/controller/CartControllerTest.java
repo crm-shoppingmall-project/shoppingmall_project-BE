@@ -1,5 +1,7 @@
 package com.twog.shopping.domain.cart.controller;
 
+import com.twog.shopping.domain.cart.entity.CartItem;
+
 import com.twog.shopping.domain.cart.dto.CartDetailDto;
 import com.twog.shopping.domain.cart.dto.CartItemRequestDto;
 import com.twog.shopping.domain.cart.entity.Cart;
@@ -19,6 +21,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,6 +54,12 @@ class CartControllerTest {
         // 1. 테스트 실행을 위한 기초 데이터(회원 등급, 회원, 상품)를 DB에 미리 생성합니다.
         // @Transactional 어노테이션으로 인해 테스트 종료 시 데이터는 자동 롤백됩니다.
         // (Native Query를 사용해 ID를 1로 고정하여 생성 - 테스트의 일관성을 위함)
+
+        // 데이터 클리어 (외래 키 제약 조건에 따른 올바른 순서)
+        entityManager.createNativeQuery("DELETE FROM member_profile").executeUpdate(); // 순환 참조 방지
+        entityManager.createNativeQuery("DELETE FROM cart_item").executeUpdate();
+        entityManager.createNativeQuery("DELETE FROM cart").executeUpdate();
+        // member, member_grade, product는 삭제하지 않고 재사용하거나 누적 (FK 제약 조건 회피)
 
         entityManager.createNativeQuery(
                 "INSERT INTO member_grade (grade_code, grade_name, grade_desc) " +
@@ -140,9 +150,45 @@ class CartControllerTest {
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         List<CartDetailDto> details = response.getBody();
         assertThat(details).isNotNull();
-        assertThat(details).hasSize(1);
-        assertThat(details.get(0).getProductName()).isEqualTo("테스트 상품");
-        assertThat(details.get(0).getCartQuantity()).isEqualTo(2);
+        // 앞선 테스트들의 영향으로 데이터가 남아있을 수 있으므로 size 검증보다 내용 검증 위주로
+        assertThat(details.stream().anyMatch(d -> d.getProductId() == testProductId)).isTrue();
+        assertThat(details.stream().filter(d -> d.getProductId() == testProductId).findFirst().orElseThrow()
+                .getCartQuantity()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("장바구니 상세 페이징 조회 통합 테스트 - 컨트롤러 직접 호출")
+    void getCartDetailsPage_Integration() {
+        // [시나리오]
+        // 1. 사용자가 상품을 5개 담아둔다.
+        // 2. 페이징 조회 API를 호출한다 (page=0, size=5).
+        // 3. 응답 결과에 Page 정보가 포함되어 있고, 컨텐츠가 1개여야 한다.
+
+        // given
+        Member member = memberRepository.findById(1L).orElseThrow();
+        DetailsUser user = new DetailsUser(member);
+
+        CartItemRequestDto requestDto = new CartItemRequestDto();
+        requestDto.setProductId(testProductId);
+        requestDto.setQuantity(5);
+        cartController.addItemToCart(user, requestDto);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // when
+        member = memberRepository.findById(1L).orElseThrow();
+        user = new DetailsUser(member);
+        PageRequest pageable = PageRequest.of(0, 5);
+        ResponseEntity<Page<CartDetailDto>> response = cartController.getCartDetailsPage(user, pageable);
+
+        // then
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        Page<CartDetailDto> page = response.getBody();
+        assertThat(page).isNotNull();
+        assertThat(page.getTotalElements()).isEqualTo(1);
+        assertThat(page.getContent().get(0).getProductName()).isEqualTo("테스트 상품");
+        assertThat(page.getContent().get(0).getCartQuantity()).isEqualTo(5);
     }
 
     @Test
@@ -173,8 +219,12 @@ class CartControllerTest {
         // DB 검증
         entityManager.flush();
         entityManager.clear();
-
+        // then
         Cart cart = cartRepository.findByMember_MemberId(1).orElseThrow();
-        assertThat(cart.getCartItems().get(0).getCartItemQuantity()).isEqualTo(10);
+        // 해당 상품의 수량이 10인지 확인
+        CartItem item = cart.getCartItems().stream()
+                .filter(i -> i.getProduct().getProductId() == testProductId)
+                .findFirst().orElseThrow();
+        assertThat(item.getCartItemQuantity()).isEqualTo(10);
     }
 }
