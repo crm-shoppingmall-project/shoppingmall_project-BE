@@ -14,6 +14,8 @@ import com.twog.shopping.domain.product.repository.ProductRepository;
 import com.twog.shopping.global.error.exception.InvalidProductStatusException;
 import com.twog.shopping.global.error.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,7 +74,7 @@ public class CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
         // 상품 상태 검증
-        if (product.getProductStatus() ==  ProductStatus.DELETED) {
+        if (product.getProductStatus() == ProductStatus.DELETED) {
             throw new InvalidProductStatusException("판매가 중단된 상품입니다.");
         }
 
@@ -97,7 +99,7 @@ public class CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("해당 상품을 찾을 수 없습니다."));
 
         // 상품 상태 검증 (수량 변경 시에도 유효하지 않은 상품이면 차단)
-        if (product.getProductStatus() ==  ProductStatus.DELETED) {
+        if (product.getProductStatus() == ProductStatus.DELETED) {
             throw new InvalidProductStatusException("판매가 중단된 상품입니다.");
         }
 
@@ -110,38 +112,51 @@ public class CartService {
         List<CartItem> cartItems = getActiveCartItemsByMemberId(memberId);
 
         return cartItems.stream()
-                .map(item -> {
-                    Product product = item.getProduct();
-                    int currentStock = product.getProductQuantity();
-                    int cartQuantity = item.getCartItemQuantity();
-                    boolean isOrderable = product.isStock(cartQuantity);
-
-                    // 삭제된 상품인 경우 주문 불가 처리
-                    if (product.getProductStatus() ==  ProductStatus.DELETED) {
-                        isOrderable = false;
-                    }
-
-                    String message = null;
-                    if (!isOrderable) {
-                        if (product.getProductStatus() == ProductStatus.DELETED) {
-                            message = "판매가 중단된 상품입니다.";
-                        } else {
-                            message = "재고가 부족하여 주문할 수 없습니다. (현재 재고: " + currentStock + ")";
-                        }
-                    }
-
-                    return CartDetailDto.builder()
-                            .cartItemId(item.getCartItemId())
-                            .productId(product.getProductId())
-                            .productName(product.getProductName())
-                            .productPrice(product.getProductPrice())
-                            .cartQuantity(cartQuantity)
-                            .productStock(currentStock)
-                            .isOrderable(isOrderable)
-                            .alertMessage(message)
-                            .build();
-                })
+                .map(this::convertToCartDetailDto)
                 .collect(Collectors.toList());
+    }
+
+    // 장바구니 상세 정보를 페이징하여 조회하고 DTO로 반환
+    @Transactional(readOnly = true)
+    public Page<CartDetailDto> getCartDetailsPage(int memberId, Pageable pageable) {
+        List<CartItemStatus> statuses = List.of(CartItemStatus.ACTIVE, CartItemStatus.UPDATED);
+        Page<CartItem> cartItemsPage = cartItemRepository.findCartItemsByMemberIdAndStatusPage(memberId, statuses,
+                pageable);
+
+        return cartItemsPage.map(this::convertToCartDetailDto);
+    }
+
+    // CartItem -> CartDetailDto 변환 (로직 분리)
+    private CartDetailDto convertToCartDetailDto(CartItem item) {
+        Product product = item.getProduct();
+        int currentStock = product.getProductQuantity();
+        int cartQuantity = item.getCartItemQuantity();
+        boolean isOrderable = product.isStock(cartQuantity);
+
+        // 삭제된 상품인 경우 주문 불가 처리
+        if (product.getProductStatus() == ProductStatus.DELETED) {
+            isOrderable = false;
+        }
+
+        String message = null;
+        if (!isOrderable) {
+            if (product.getProductStatus() == ProductStatus.DELETED) {
+                message = "판매가 중단된 상품입니다.";
+            } else {
+                message = "재고가 부족하여 주문할 수 없습니다. (현재 재고: " + currentStock + ")";
+            }
+        }
+
+        return CartDetailDto.builder()
+                .cartItemId(item.getCartItemId())
+                .productId(product.getProductId())
+                .productName(product.getProductName())
+                .productPrice(product.getProductPrice())
+                .cartQuantity(cartQuantity)
+                .productStock(currentStock)
+                .isOrderable(isOrderable)
+                .alertMessage(message)
+                .build();
     }
 
     // 장바구니의 모든 상품 수량을 일괄 업데이트
