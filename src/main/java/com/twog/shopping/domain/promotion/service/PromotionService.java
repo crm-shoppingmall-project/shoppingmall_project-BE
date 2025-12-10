@@ -20,6 +20,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.twog.shopping.domain.promotion.dto.CampaignDetailResponseDto;
+import com.twog.shopping.domain.promotion.dto.MessageSendLogResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -141,12 +143,11 @@ public class PromotionService {
             detail.put("event", "CAMPAIGN_BATCH_EXECUTED");
             detail.put("campaign_id", campaign.getCampaignId());
             detail.put("campaign_name", campaign.getCampaignName());
-            detail.put("batch_size", logsToSave.size());          // 이번 페이지에서 보낸 유저 수
+            detail.put("batch_size", logsToSave.size()); // 이번 페이지에서 보낸 유저 수
             detail.put("sent_member_ids",
                     memberPage.getContent().stream()
                             .map(Member::getMemberId)
-                            .toList()
-            );
+                            .toList());
 
             String detailJson;
             try {
@@ -155,19 +156,18 @@ public class PromotionService {
                 // 문제가 생겨도 최소 텍스트는 남기고 싶다면
                 detailJson = String.format(
                         "{\"event\":\"CAMPAIGN_BATCH_EXECUTED\",\"campaign_id\":%d,\"error\":\"json_error\"}",
-                        campaign.getCampaignId()
-                );
+                        campaign.getCampaignId());
             }
 
             // 통합 히스토리 저장
             History history = History.create(
-                    HistoryActionType.SYSTEM_UPDATE,   // actionType
-                    0L,                                // memberId (SYSTEM)
-                    detailJson,                        // JSON detail
-                    "SYSTEM_BATCH",                    // ipAddress
-                    HistoryRefTable.campaign,          // refTable
-                    campaign.getCampaignId(),          // refId (연결 PK)
-                    "SYSTEM_BATCH"                     // userAgent
+                    HistoryActionType.SYSTEM_UPDATE, // actionType
+                    0L, // memberId (SYSTEM)
+                    detailJson, // JSON detail
+                    "SYSTEM_BATCH", // ipAddress
+                    HistoryRefTable.campaign, // refTable
+                    campaign.getCampaignId(), // refId (연결 PK)
+                    "SYSTEM_BATCH" // userAgent
             );
 
             historyRepository.save(history);
@@ -185,6 +185,35 @@ public class PromotionService {
         MessageSendLog log = messageSendLogRepository.findById(sendId)
                 .orElseThrow(() -> new ResourceNotFoundException("발송 이력을 찾을 수 없습니다."));
         log.markAsClicked();
+    }
+
+    // 캠페인 목록 페이징 조회
+    @Transactional(readOnly = true)
+    public Page<CampaignResponseDto> getCampaignsPage(Pageable pageable) {
+        return campaignRepository.findAll(pageable)
+                .map(CampaignResponseDto::new);
+    }
+
+    // 캠페인 상세 조회 (통계 포함)
+    @Transactional(readOnly = true)
+    public CampaignDetailResponseDto getCampaignDetail(Long campaignId) {
+        Campaign campaign = findCampaignById(campaignId);
+
+        // 통계 쿼리 (count)
+        long totalSentCount = messageSendLogRepository.countByCampaign_CampaignId(campaignId);
+        long totalClickedCount = messageSendLogRepository.countByCampaign_CampaignIdAndSendClickedIsNotNull(campaignId);
+
+        return new CampaignDetailResponseDto(campaign, totalSentCount, totalClickedCount);
+    }
+
+    // 캠페인 발송 이력 조회
+    @Transactional(readOnly = true)
+    public Page<MessageSendLogResponseDto> getCampaignSendLogs(Long campaignId, Pageable pageable) {
+        // 캠페인 존재 확인
+        findCampaignById(campaignId);
+
+        return messageSendLogRepository.findByCampaign_CampaignId(campaignId, pageable)
+                .map(MessageSendLogResponseDto::new);
     }
 
     private Campaign findCampaignById(Long campaignId) {

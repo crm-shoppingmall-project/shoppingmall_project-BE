@@ -2,8 +2,13 @@ package com.twog.shopping.domain.promotion.controller;
 
 import com.twog.shopping.domain.promotion.dto.CampaignRequestDto;
 import com.twog.shopping.domain.promotion.dto.CampaignResponseDto;
+import com.twog.shopping.domain.promotion.dto.CampaignDetailResponseDto;
+import com.twog.shopping.domain.promotion.dto.MessageSendLogResponseDto;
 import com.twog.shopping.domain.promotion.service.PromotionService;
 import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation; // import 추가 확인
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +50,32 @@ public class PromotionController {
         return ResponseEntity.ok().build();
     }
 
+    // 캠페인 목록 조회 (ADMIN)
+    @GetMapping("/campaigns")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "캠페인 목록 조회", description = "생성된 캠페인 목록을 페이징하여 조회합니다. (관리자 전용)")
+    public ResponseEntity<Page<CampaignResponseDto>> getCampaigns(Pageable pageable) {
+        return ResponseEntity.ok(promotionService.getCampaignsPage(pageable));
+    }
+
+    // 캠페인 상세 조회 (ADMIN)
+    @GetMapping("/campaigns/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "캠페인 상세 조회", description = "캠페인의 상세 정보와 발송 통계를 조회합니다. (관리자 전용)")
+    public ResponseEntity<CampaignDetailResponseDto> getCampaign(@PathVariable Long id) {
+        return ResponseEntity.ok(promotionService.getCampaignDetail(id));
+    }
+
+    // 캠페인 발송 이력 조회 (ADMIN)
+    @GetMapping("/campaigns/{id}/logs")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "캠페인 발송 이력 조회", description = "특정 캠페인의 발송 로그를 조회합니다. (관리자 전용)")
+    public ResponseEntity<Page<MessageSendLogResponseDto>> getCampaignLogs(
+            @PathVariable Long id,
+            Pageable pageable) {
+        return ResponseEntity.ok(promotionService.getCampaignSendLogs(id, pageable));
+    }
+
     // 이메일 발송 배치 트리거 (ADMIN)
     @PostMapping("/campaigns/{id}/send")
     @PreAuthorize("hasRole('ADMIN')")
@@ -56,7 +87,6 @@ public class PromotionController {
 
     // 이메일 클릭 추적 (USER/PUBLIC)
     @GetMapping("/click/{sendId}")
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "이메일 클릭 추적", description = "발송된 이메일의 클릭 여부를 추적합니다.")
     public ResponseEntity<String> trackEmailClick(@PathVariable Long sendId) {
         promotionService.trackEmailClick(sendId);
