@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.twog.shopping.domain.member.entity.Member;
+import com.twog.shopping.domain.member.entity.UserRole;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.domain.support.dto.CsTicketReplyRequest;
 import com.twog.shopping.domain.support.dto.CsTicketReplyResponse;
@@ -63,18 +64,35 @@ public class CsTicketService {
   }
 
   @Transactional(readOnly = true)
-  public CsTicketResponse getTicket(Long csTicketId) {
+  public CsTicketResponse getTicket(Long csTicketId, Long memberId, UserRole role) {
     CsTicket ticket = csTicketRepository.findById(csTicketId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "문의 내역을 찾을 수 없습니다."));
+    
+    // 본인의 티켓이거나 ADMIN인 경우에만 조회 가능
+    boolean isOwner = ticket.getMember().getMemberId().equals(memberId);
+    boolean isAdmin = role == UserRole.ADMIN;
+    
+    if (!isOwner && !isAdmin) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 문의를 조회할 권한이 없습니다.");
+    }
+    
     return CsTicketResponse.from(ticket);
   }
 
   @Transactional
-  public CsTicketReplyResponse createReply(Long csTicketId, CsTicketReplyRequest req) {
+  public CsTicketReplyResponse createReply(Long csTicketId, Long responderId, CsTicketReplyRequest req) {
+    // 답변자 권한 확인
+    Member responder = memberRepository.findById(responderId)
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "답변자 정보를 찾을 수 없습니다."));
+    
+    if (responder.getMemberRole() != UserRole.ADMIN) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "답변 권한이 없습니다.");
+    }
+    
     CsTicket ticket = csTicketRepository.findById(csTicketId)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "문의 내역을 찾을 수 없습니다."));
     
-    CsTicketReply reply = CsTicketReply.create(ticket, req.replyResponderId(), req.replyContent());
+    CsTicketReply reply = CsTicketReply.create(ticket, responderId, req.replyContent());
     csTicketReplyRepository.save(reply);
     
     return CsTicketReplyResponse.from(reply);

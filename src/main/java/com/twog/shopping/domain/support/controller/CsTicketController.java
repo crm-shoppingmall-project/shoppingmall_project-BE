@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import com.twog.shopping.domain.support.dto.CsTicketReplyRequest;
@@ -17,6 +18,7 @@ import com.twog.shopping.domain.support.dto.CsTicketReplyResponse;
 import com.twog.shopping.domain.support.dto.CsTicketRequest;
 import com.twog.shopping.domain.support.dto.CsTicketResponse;
 import com.twog.shopping.domain.support.service.CsTicketService;
+import com.twog.shopping.domain.member.entity.UserRole;
 import com.twog.shopping.domain.member.service.DetailsUser;
 
 
@@ -49,13 +51,20 @@ public class CsTicketController {
     }
 
     @GetMapping("/{id}")
-    public CsTicketResponse getTicket(@PathVariable Long id) {
-        return csTicketService.getTicket(id);
+    public CsTicketResponse getTicket(@AuthenticationPrincipal DetailsUser user,
+                                      @PathVariable Long id) {
+        Long memberId = user.getMember().getMemberId();
+        UserRole role = user.getMember().getMemberRole();
+        return csTicketService.getTicket(id, memberId, role);
     }
 
     @PostMapping("/{id}/replies")
     @ResponseStatus(HttpStatus.CREATED)
-    public CsTicketReplyResponse createReply(@PathVariable Long id, @RequestBody CsTicketReplyRequest req) {
-        return csTicketService.createReply(id, req);
+    @PreAuthorize("hasRole('ADMIN')")
+    public CsTicketReplyResponse createReply(@AuthenticationPrincipal DetailsUser user,
+                                              @PathVariable Long id, 
+                                              @RequestBody CsTicketReplyRequest req) {
+        Long responderId = user.getMember().getMemberId();
+        return csTicketService.createReply(id, responderId, req);
     }
 }

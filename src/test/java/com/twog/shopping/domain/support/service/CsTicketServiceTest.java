@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.twog.shopping.domain.member.entity.Member;
+import com.twog.shopping.domain.member.entity.UserRole;
 import com.twog.shopping.domain.member.repository.MemberRepository;
 import com.twog.shopping.domain.support.dto.CsTicketReplyRequest;
 import com.twog.shopping.domain.support.dto.CsTicketReplyResponse;
@@ -132,11 +133,12 @@ class CsTicketServiceTest {
     }
 
     @Test
-    @DisplayName("문의 상세 조회 성공")
-    void getTicket_Success() {
+    @DisplayName("문의 상세 조회 성공 - 본인 티켓")
+    void getTicket_Success_Owner() {
         // given
         Long ticketId = 1L;
         Long memberId = 1L;
+        UserRole role = UserRole.USER;
         
         CsTicket ticket = org.mockito.Mockito.mock(CsTicket.class);
         Member mockMember = org.mockito.Mockito.mock(Member.class);
@@ -148,10 +150,58 @@ class CsTicketServiceTest {
         given(csTicketRepository.findById(ticketId)).willReturn(Optional.of(ticket));
 
         // when
-        CsTicketResponse response = csTicketService.getTicket(ticketId);
+        CsTicketResponse response = csTicketService.getTicket(ticketId, memberId, role);
 
         // then
         assertThat(response.csTicketId()).isEqualTo(ticketId);
+    }
+
+    @Test
+    @DisplayName("문의 상세 조회 성공 - ADMIN")
+    void getTicket_Success_Admin() {
+        // given
+        Long ticketId = 1L;
+        Long ownerId = 1L;
+        Long adminId = 999L;
+        UserRole role = UserRole.ADMIN;
+        
+        CsTicket ticket = org.mockito.Mockito.mock(CsTicket.class);
+        Member mockMember = org.mockito.Mockito.mock(Member.class);
+        
+        given(ticket.getMember()).willReturn(mockMember);
+        given(mockMember.getMemberId()).willReturn(ownerId);
+        given(ticket.getCsTicketId()).willReturn(ticketId);
+
+        given(csTicketRepository.findById(ticketId)).willReturn(Optional.of(ticket));
+
+        // when
+        CsTicketResponse response = csTicketService.getTicket(ticketId, adminId, role);
+
+        // then
+        assertThat(response.csTicketId()).isEqualTo(ticketId);
+    }
+
+    @Test
+    @DisplayName("문의 상세 조회 실패 - 권한 없음")
+    void getTicket_Fail_Forbidden() {
+        // given
+        Long ticketId = 1L;
+        Long ownerId = 1L;
+        Long otherMemberId = 2L;
+        UserRole role = UserRole.USER;
+        
+        CsTicket ticket = org.mockito.Mockito.mock(CsTicket.class);
+        Member mockMember = org.mockito.Mockito.mock(Member.class);
+        
+        given(ticket.getMember()).willReturn(mockMember);
+        given(mockMember.getMemberId()).willReturn(ownerId);
+
+        given(csTicketRepository.findById(ticketId)).willReturn(Optional.of(ticket));
+
+        // when & then
+        assertThatThrownBy(() -> csTicketService.getTicket(ticketId, otherMemberId, role))
+            .isInstanceOf(ResponseStatusException.class)
+            .hasMessageContaining("해당 문의를 조회할 권한이 없습니다.");
     }
 
     @Test
@@ -159,23 +209,44 @@ class CsTicketServiceTest {
     void createReply_Success() {
         // given
         Long ticketId = 1L;
-        CsTicketReplyRequest req = new CsTicketReplyRequest(999L, "답변입니다.");
+        Long responderId = 999L;
+        CsTicketReplyRequest req = new CsTicketReplyRequest("답변입니다.");
         
         CsTicket ticket = org.mockito.Mockito.mock(CsTicket.class);
+        Member adminMember = org.mockito.Mockito.mock(Member.class);
         
+        given(memberRepository.findById(responderId)).willReturn(Optional.of(adminMember));
+        given(adminMember.getMemberRole()).willReturn(UserRole.ADMIN);
         given(csTicketRepository.findById(ticketId)).willReturn(Optional.of(ticket));
         given(csTicketReplyRepository.save(any(CsTicketReply.class))).willAnswer(invocation -> {
             CsTicketReply reply = invocation.getArgument(0);
-            // 엔티티의 ID는 리플렉션 없이 쉽게 설정할 수 없기 때문에,
-            // ID 자체보다 내용 검증 위주로 테스트하는 것이 좋습니다.
             return reply;
         });
 
         // when
-        CsTicketReplyResponse response = csTicketService.createReply(ticketId, req);
+        CsTicketReplyResponse response = csTicketService.createReply(ticketId, responderId, req);
 
         // then
         assertThat(response.replyContent()).isEqualTo(req.replyContent());
         verify(csTicketReplyRepository).save(any(CsTicketReply.class));
+    }
+
+    @Test
+    @DisplayName("문의 답변 등록 실패 - 권한 없음")
+    void createReply_Fail_Forbidden() {
+        // given
+        Long ticketId = 1L;
+        Long responderId = 1L;
+        CsTicketReplyRequest req = new CsTicketReplyRequest("답변입니다.");
+        
+        Member userMember = org.mockito.Mockito.mock(Member.class);
+        
+        given(memberRepository.findById(responderId)).willReturn(Optional.of(userMember));
+        given(userMember.getMemberRole()).willReturn(UserRole.USER);
+
+        // when & then
+        assertThatThrownBy(() -> csTicketService.createReply(ticketId, responderId, req))
+            .isInstanceOf(ResponseStatusException.class)
+            .hasMessageContaining("답변 권한이 없습니다.");
     }
 }
