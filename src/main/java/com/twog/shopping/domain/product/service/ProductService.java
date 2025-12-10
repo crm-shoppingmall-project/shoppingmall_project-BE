@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import com.twog.shopping.domain.product.dto.ProductRequestDto;
 import com.twog.shopping.domain.product.dto.ProductResponseDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -69,7 +71,26 @@ public class ProductService {
     @Transactional(readOnly = true)
     public List<ProductResponseDto> findProducts(Integer productId, String productName, String productCategory,
             UserRole userRole, GradeName gradeName) {
-        Specification<Product> spec = (root, query, criteriaBuilder) -> {
+        Specification<Product> spec = createSpecification(productId, productName, productCategory, userRole);
+
+        return productRepository.findAll(spec).stream()
+                .map(product -> new ProductResponseDto(product, gradeName))
+                .toList();
+    }
+
+    // 상품 페이징 조회 (검색 및 필터링)
+    @Transactional(readOnly = true)
+    public Page<ProductResponseDto> getProductsPage(Integer productId, String productName, String productCategory,
+            UserRole userRole, GradeName gradeName, Pageable pageable) {
+        Specification<Product> spec = createSpecification(productId, productName, productCategory, userRole);
+
+        return productRepository.findAll(spec, pageable)
+                .map(product -> new ProductResponseDto(product, gradeName));
+    }
+
+    private Specification<Product> createSpecification(Integer productId, String productName, String productCategory,
+            UserRole userRole) {
+        return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (productId != null) {
@@ -90,9 +111,5 @@ public class ProductService {
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
-
-        return productRepository.findAll(spec).stream()
-                .map(product -> new ProductResponseDto(product, gradeName))
-                .toList();
     }
 }

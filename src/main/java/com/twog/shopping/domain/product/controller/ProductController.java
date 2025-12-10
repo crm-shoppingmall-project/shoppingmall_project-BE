@@ -14,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable; // springframework data import
+
 import java.util.List;
 
 @RestController
@@ -37,6 +40,23 @@ public class ProductController {
 
         List<ProductResponseDto> products = productService.findProducts(productId, productName, productCategory,
                 userRole, gradeName);
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/page")
+    @Operation(summary = "상품 목록 페이징 조회", description = "조건에 맞는 상품 목록을 페이징하여 조회합니다.")
+    public ResponseEntity<Page<ProductResponseDto>> getProductsPage(
+            @RequestParam(required = false) Integer productId,
+            @RequestParam(required = false) String productName,
+            @RequestParam(required = false) String productCategory,
+            Pageable pageable,
+            @AuthenticationPrincipal DetailsUser user) {
+
+        UserRole userRole = (user != null) ? user.getMember().getMemberRole() : null;
+        GradeName gradeName = (user != null) ? user.getGradeName() : null;
+
+        Page<ProductResponseDto> products = productService.getProductsPage(productId, productName, productCategory,
+                userRole, gradeName, pageable);
         return ResponseEntity.ok(products);
     }
 
