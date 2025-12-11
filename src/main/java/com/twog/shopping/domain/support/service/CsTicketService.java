@@ -63,6 +63,8 @@ public class CsTicketService {
     return tickets.map(CsTicketResponse::from);
   }
 
+
+
   @Transactional(readOnly = true)
   public CsTicketResponse getTicket(Long csTicketId, Long memberId, UserRole role) {
     CsTicket ticket = csTicketRepository.findById(csTicketId)

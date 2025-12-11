@@ -1,5 +1,7 @@
 package com.twog.shopping.domain.support.controller;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,17 +15,21 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
-import com.twog.shopping.domain.support.dto.CsTicketReplyRequest;
-import com.twog.shopping.domain.support.dto.CsTicketReplyResponse;
+
 import com.twog.shopping.domain.support.dto.CsTicketRequest;
+import com.twog.shopping.domain.support.dto.CsTicketReplyResponse;
 import com.twog.shopping.domain.support.dto.CsTicketResponse;
 import com.twog.shopping.domain.support.service.CsTicketService;
 import com.twog.shopping.domain.member.entity.UserRole;
 import com.twog.shopping.domain.member.service.DetailsUser;
 
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/v1/cs-tickets")
+@Tag(name = "CS Ticket", description = "고객센터 문의 API (사용자용)")
 public class CsTicketController {
 
     private final CsTicketService csTicketService;
@@ -34,6 +40,7 @@ public class CsTicketController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "문의 등록", description = "새로운 1:1 문의를 등록합니다.")
     public CsTicketResponse createTicket(@AuthenticationPrincipal DetailsUser user,
                                          @ModelAttribute CsTicketRequest req) {
         Long memberId = user.getMember().getMemberId();
@@ -41,6 +48,7 @@ public class CsTicketController {
     }
 
     @GetMapping
+    @Operation(summary = "내 문의 목록 조회", description = "자신이 작성한 문의 내역을 페이징하여 조회합니다.")
     public Page<CsTicketResponse> getMyTickets(
             @AuthenticationPrincipal DetailsUser user,
             @RequestParam(defaultValue = "0") int page,
@@ -50,18 +58,8 @@ public class CsTicketController {
         return csTicketService.getMyTickets(memberId, page, size, sort);
     }
 
-    // 관리자용: 전체 티켓 조회
-    @GetMapping("/admin/all")
-    public Page<CsTicketResponse> getAllTickets(
-            @AuthenticationPrincipal DetailsUser user,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "csTicketCreatedAt,desc") String sort) {
-        UserRole role = user.getMember().getMemberRole();
-        return csTicketService.getAllTickets(role, page, size, sort);
-    }
-
     @GetMapping("/{id}")
+    @Operation(summary = "문의 상세 조회", description = "특정 문의 내역의 상세 정보를 조회합니다.")
     public CsTicketResponse getTicket(@AuthenticationPrincipal DetailsUser user,
                                       @PathVariable Long id) {
         Long memberId = user.getMember().getMemberId();
@@ -69,33 +67,12 @@ public class CsTicketController {
         return csTicketService.getTicket(id, memberId, role);
     }
 
-    // 티켓의 답변 목록 조회
     @GetMapping("/{id}/replies")
-    public java.util.List<CsTicketReplyResponse> getReplies(
-            @AuthenticationPrincipal DetailsUser user,
-            @PathVariable Long id) {
+    @Operation(summary = "문의 답변 목록 조회", description = "특정 문의에 대한 답변 목록을 조회합니다.")
+    public List<CsTicketReplyResponse> getReplies(@AuthenticationPrincipal DetailsUser user,
+                                                   @PathVariable Long id) {
         Long memberId = user.getMember().getMemberId();
         UserRole role = user.getMember().getMemberRole();
         return csTicketService.getReplies(id, memberId, role);
-    }
-
-    @PostMapping(value = "/{id}/replies", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ResponseStatus(HttpStatus.CREATED)
-    public CsTicketReplyResponse createReply(@AuthenticationPrincipal DetailsUser user,
-                                              @PathVariable Long id, 
-                                              @ModelAttribute CsTicketReplyRequest req) {
-        Long responderId = user.getMember().getMemberId();
-        return csTicketService.createReply(id, responderId, req);
-    }
-
-    // 관리자용: 티켓 상태 변경
-    @PostMapping("/{id}/status")
-    public CsTicketResponse changeStatus(
-            @AuthenticationPrincipal DetailsUser user,
-            @PathVariable Long id,
-            @RequestParam String status) {
-        Long memberId = user.getMember().getMemberId();
-        UserRole role = user.getMember().getMemberRole();
-        return csTicketService.changeTicketStatus(id, memberId, role, status);
     }
 }
