@@ -130,9 +130,20 @@ public class PaymentService {
     }
 
     @Transactional
+    public void cancelPaymentByPurchaseId(Long purchaseId, Long memberId, String cancelReason) {
+        Payment payment = paymentRepository.findByPurchase_Id(purchaseId)
+                .orElseThrow(() -> new NoSuchElementException("해당 주문의 결제 정보를 찾을 수 없습니다. (주문 ID: " + purchaseId + ")"));
+        cancelPaymentInternal(payment, memberId, cancelReason);
+    }
+
+    @Transactional
     public void cancelPayment(Long paymentId, Long memberId, String cancelReason) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new NoSuchElementException("결제 정보를 찾을 수 없습니다. (ID: " + paymentId + ")"));
+        cancelPaymentInternal(payment, memberId, cancelReason);
+    }
+
+    private void cancelPaymentInternal(Payment payment, Long memberId, String cancelReason) {
 
         if (!Objects.equals(payment.getPurchase().getMemberId(), memberId)) {
             throw new SecurityException("해당 결제에 대한 취소 권한이 없습니다.");

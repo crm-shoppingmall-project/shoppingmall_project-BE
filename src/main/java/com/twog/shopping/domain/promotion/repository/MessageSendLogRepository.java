@@ -14,4 +14,6 @@ public interface MessageSendLogRepository extends JpaRepository<MessageSendLog, 
     long countByCampaign_CampaignIdAndSendClickedIsNotNull(Long campaignId);
 
     Page<MessageSendLog> findByCampaign_CampaignId(Long campaignId, Pageable pageable);
+
+    void deleteByCampaign_CampaignId(Long campaignId);
 }
