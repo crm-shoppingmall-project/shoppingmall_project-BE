@@ -30,7 +30,7 @@ public class MemberGradeCalculationService {
     private final MemberRepository memberRepository;
 
     // 최소 유지일수
-    private static final int GRADE_FREEZE_DAYS = 30;
+    private static final int GRADE_FREEZE_DAYS = 60;
 
     /**
      * RFM totalScore 기준으로 전체 회원 등급 산정 + 이력 기록

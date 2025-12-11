@@ -29,9 +29,11 @@ public class MemberGradeHistory {
     @JoinColumn(name = "grade_code", nullable = false)
     private MemberGrade grade;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "history_before", nullable = false, length = 20)
     private GradeName historyBefore;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "history_after", nullable = false, length = 20)
     private GradeName historyAfter;
 

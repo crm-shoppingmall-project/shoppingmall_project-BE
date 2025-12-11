@@ -76,4 +76,11 @@ public class MemberController {
         memberProfileService.withdraw(email, dto);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "관리자용 전체 회원 조회", description = "관리자가 모든 회원 정보를 조회합니다.")
+    @GetMapping("/admin/all")
+    public ResponseEntity<java.util.List<com.twog.shopping.domain.member.dto.response.MemberAdminResponseDTO>> getAllMembers(
+            @AuthenticationPrincipal DetailsUser detailsUser) {
+        return ResponseEntity.ok(memberService.getAllMembersWithRfm());
+    }
 }

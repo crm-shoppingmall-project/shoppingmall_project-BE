@@ -53,14 +53,6 @@ public class PaymentService {
             throw new IllegalStateException("이미 결제가 완료된 구매입니다. (구매 ID: " + purchase.getId() + ")");
         }
 
-        Integer actualPurchaseAmount = purchase.getDetails().stream()
-                .mapToInt(detail -> detail.getPaidAmount() * detail.getQuantity())
-                .sum();
-
-        if (!Objects.equals(actualPurchaseAmount, request.getAmount())) {
-            throw new IllegalStateException("결제 금액이 구매 금액과 일치하지 않습니다. (요청 금액: " + request.getAmount() + ", 실제 구매 금액: " + actualPurchaseAmount + ")");
-        }
-
         Payment payment = Payment.builder()
                 .purchase(purchase)
                 .pgTid(UUID.randomUUID().toString().substring(0, 20))
@@ -87,13 +79,6 @@ public class PaymentService {
         }
 
         Purchase purchase = payment.getPurchase();
-        Integer actualPurchaseAmount = purchase.getDetails().stream()
-                .mapToInt(detail -> detail.getPaidAmount() * detail.getQuantity())
-                .sum();
-
-        if (!Objects.equals(actualPurchaseAmount, amount)) {
-            throw new IllegalStateException("토스페이먼츠 결제 금액과 구매 금액이 일치하지 않습니다. (토스 금액: " + amount + ", 실제 구매 금액: " + actualPurchaseAmount + ")");
-        }
 
         HttpHeaders headers = new HttpHeaders();
         String encodedSecretKey = Base64.getEncoder().encodeToString((tossPaymentsConfig.getSecretKey() + ":").getBytes());
