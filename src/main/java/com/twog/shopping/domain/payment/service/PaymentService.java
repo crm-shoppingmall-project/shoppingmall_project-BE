@@ -1,11 +1,14 @@
 package com.twog.shopping.domain.payment.service;
 
+import com.twog.shopping.domain.log.aop.LogHistory;
+import com.twog.shopping.domain.log.entity.HistoryActionType;
 import com.twog.shopping.domain.payment.dto.PaymentRequest;
 import com.twog.shopping.domain.payment.dto.PaymentResponse;
 import com.twog.shopping.domain.payment.entity.Payment;
 import com.twog.shopping.domain.payment.entity.PaymentStatus;
 import com.twog.shopping.domain.payment.entity.PaymentType;
 import com.twog.shopping.domain.payment.repository.PaymentRepository;
+import com.twog.shopping.domain.purchase.dto.PurchaseResponse;
 import com.twog.shopping.domain.purchase.entity.Purchase;
 import com.twog.shopping.domain.purchase.entity.PurchaseStatus;
 import com.twog.shopping.domain.purchase.repository.PurchaseRepository;
@@ -65,13 +68,15 @@ public class PaymentService {
 
         return savedPayment.getId();
     }
-
+    @LogHistory(actionType = HistoryActionType.PURCHASE_COMPLETED)
     @Transactional
-    public void confirmTossPayment(String paymentKey, String orderId, Integer amount) {
+    public PurchaseResponse confirmTossPayment(String paymentKey, String orderId, Integer amount) {
         log.info("Toss Payments Secret Key: {}", tossPaymentsConfig.getSecretKey());
         log.info("Toss Payments API URL: {}", tossPaymentsConfig.getApiUrl());
 
-        Payment payment = paymentRepository.findById(Long.valueOf(orderId))
+        // orderId에서 paymentId 추출 (형식: "000001_timestamp" 또는 "000001")
+        String paymentIdStr = orderId.contains("_") ? orderId.split("_")[0] : orderId;
+        Payment payment = paymentRepository.findById(Long.valueOf(paymentIdStr))
                 .orElseThrow(() -> new NoSuchElementException("결제 정보를 찾을 수 없습니다. (OrderId: " + orderId + ")"));
 
         if (payment.getStatus() != PaymentStatus.REQUESTED) {
@@ -112,6 +117,8 @@ public class PaymentService {
 
                 purchase.updateStatus(PurchaseStatus.COMPLETED);
                 purchaseRepository.save(purchase);
+                
+                return PurchaseResponse.fromEntity(purchase);
             } else {
                 log.error("결제 승인 실패! Toss API가 OK가 아닌 상태를 반환했습니다.");
                 throw new RuntimeException("토스페이먼츠 승인 실패: " + response.getBody());
@@ -123,9 +130,20 @@ public class PaymentService {
     }
 
     @Transactional
+    public void cancelPaymentByPurchaseId(Long purchaseId, Long memberId, String cancelReason) {
+        Payment payment = paymentRepository.findByPurchase_Id(purchaseId)
+                .orElseThrow(() -> new NoSuchElementException("해당 주문의 결제 정보를 찾을 수 없습니다. (주문 ID: " + purchaseId + ")"));
+        cancelPaymentInternal(payment, memberId, cancelReason);
+    }
+
+    @Transactional
     public void cancelPayment(Long paymentId, Long memberId, String cancelReason) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new NoSuchElementException("결제 정보를 찾을 수 없습니다. (ID: " + paymentId + ")"));
+        cancelPaymentInternal(payment, memberId, cancelReason);
+    }
+
+    private void cancelPaymentInternal(Payment payment, Long memberId, String cancelReason) {
 
         if (!Objects.equals(payment.getPurchase().getMemberId(), memberId)) {
             throw new SecurityException("해당 결제에 대한 취소 권한이 없습니다.");

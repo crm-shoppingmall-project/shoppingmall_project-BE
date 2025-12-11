@@ -6,6 +6,7 @@ import com.twog.shopping.domain.member.service.MemberService;
 import com.twog.shopping.domain.payment.dto.PaymentRequest;
 import com.twog.shopping.domain.payment.dto.PaymentResponse;
 import com.twog.shopping.domain.payment.service.PaymentService;
+import com.twog.shopping.domain.purchase.dto.PurchaseResponse;
 import com.twog.shopping.global.common.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,14 +44,15 @@ public class PaymentController {
 
     @Operation(summary = "토스페이먼츠 결제 승인", description = "토스페이먼츠의 결제 성공 후 콜백을 받아 결제를 최종 승인 처리합니다.")
     @GetMapping("/confirm")
-    public ResponseEntity<ApiResponse<Void>> confirmTossPayment(
+    public ResponseEntity<ApiResponse<PurchaseResponse>> confirmTossPayment(
             @RequestParam String paymentKey,
             @RequestParam String orderId,
             @RequestParam Integer amount) {
 
-        paymentService.confirmTossPayment(paymentKey, orderId, amount);
+        PurchaseResponse purchaseResponse =
+                paymentService.confirmTossPayment(paymentKey, orderId, amount);
 
-        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "결제가 성공적으로 승인되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "결제가 성공적으로 승인되었습니다.", purchaseResponse));
     }
 
     @Operation(summary = "결제 취소 (환불)", description = "특정 결제를 취소하고 환불을 요청합니다.")
@@ -63,6 +65,20 @@ public class PaymentController {
         Optional<Member> member = memberService.findByEmail(user.getUsername());
         String cancelReason = requestBody.getOrDefault("cancelReason", "고객 요청");
         paymentService.cancelPayment(paymentId, member.get().getMemberId(), cancelReason);
+
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "결제가 성공적으로 취소되었습니다."));
+    }
+
+    @Operation(summary = "주문 ID로 결제 취소 (환불)", description = "주문 ID를 통해 해당 주문의 결제를 취소하고 환불을 요청합니다.")
+    @PostMapping("/purchase/{purchaseId}/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelPaymentByPurchaseId(
+            @PathVariable Long purchaseId,
+            @RequestBody Map<String, String> requestBody,
+            @AuthenticationPrincipal DetailsUser user) {
+
+        Optional<Member> member = memberService.findByEmail(user.getUsername());
+        String cancelReason = requestBody.getOrDefault("cancelReason", "고객 요청");
+        paymentService.cancelPaymentByPurchaseId(purchaseId, member.get().getMemberId(), cancelReason);
 
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "결제가 성공적으로 취소되었습니다."));
     }

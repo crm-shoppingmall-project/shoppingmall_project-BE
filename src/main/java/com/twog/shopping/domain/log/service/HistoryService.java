@@ -2,15 +2,20 @@ package com.twog.shopping.domain.log.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.twog.shopping.domain.log.dto.HistoryResponseDTO;
 import com.twog.shopping.domain.log.entity.History;
 import com.twog.shopping.domain.log.entity.HistoryActionType;
 import com.twog.shopping.domain.log.entity.HistoryRefTable;
 import com.twog.shopping.domain.log.repository.HistoryRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -19,6 +24,23 @@ public class HistoryService {
 
     private final HistoryRepository historyRepository;
     private final ObjectMapper objectMapper;
+
+    // 관리자용: 전체 로그 조회
+    @Transactional(readOnly = true)
+    public List<HistoryResponseDTO> getAllHistories() {
+        return historyRepository.findAll(org.springframework.data.domain.Sort.by(
+                org.springframework.data.domain.Sort.Direction.DESC, "datetime"))
+                .stream()
+                .map(HistoryResponseDTO::fromEntity)
+                .toList();
+    }
+
+    // 관리자용: 페이징 로그 조회
+    @Transactional(readOnly = true)
+    public Page<HistoryResponseDTO> getAllHistoriesPage(Pageable pageable) {
+        return historyRepository.findAllOrderByDatetimeDesc(pageable)
+                .map(HistoryResponseDTO::fromEntity);
+    }
 
     public void saveHistory(
             Long memberId,

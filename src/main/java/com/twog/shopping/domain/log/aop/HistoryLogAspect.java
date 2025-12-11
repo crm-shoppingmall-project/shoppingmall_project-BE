@@ -62,7 +62,7 @@ public class HistoryLogAspect {
 
         if (actionType == HistoryActionType.PURCHASE_COMPLETED) {
 
-            refId = extractPurchaseInfo(result, detail);
+            refId = extractPurchaseInfo(joinPoint,result, detail);
 
         }
 
@@ -96,45 +96,73 @@ public class HistoryLogAspect {
 
     }
 
-    private Long extractPurchaseInfo(Object result, Map<String, Object> detail) {
-        if (result == null) {
-            return null;
-        }
+    private Long extractPurchaseInfo(JoinPoint joinPoint, Object result, Map<String, Object> detail) {
 
         try {
 
-            // 0) 일단 body 변수에 실제 "내용"을 담자
             Object body = result;
 
-            // 1) ResponseEntity<ApiResponse<PurchaseResponse>> 인 경우 → 껍데기 벗기기
-            if (result instanceof ResponseEntity<?> responseEntity) {
-                body = responseEntity.getBody();   // ApiResponse<PurchaseResponse>
-                if (body == null) {
-                    log.debug("[HistoryLogAspect] ResponseEntity body가 null 입니다.");
-                    return null;
+            if (body != null) {
+
+                //  ResponseEntity<ApiResponse<PurchaseResponse>> 인 경우
+                if (body instanceof ResponseEntity<?> responseEntity) {
+                    body = responseEntity.getBody();   // ApiResponse<PurchaseResponse>
+                    if (body == null) {
+                        log.debug("[HistoryLogAspect] ResponseEntity body가 null 입니다.");
+                    }
                 }
-            }
 
+                //  ApiResponse<PurchaseResponse> 인 경우
+                if (body instanceof ApiResponse<?> apiResponse) {
+                    Object data = apiResponse.getData();  // PurchaseResponse
 
-            // 2) ApiResponse<PurchaseResponse> 인 경우
-            if (body instanceof ApiResponse<?> apiResponse) {
-                Object data = apiResponse.getData();  // PurchaseResponse
+                    if (data instanceof PurchaseResponse purchase) {
+                        return fillPurchaseDetail(purchase, detail);
+                    } else {
+                        log.debug("[HistoryLogAspect] ApiResponse.data가 PurchaseResponse가 아닙니다. type={}",
+                                (data != null ? data.getClass().getName() : "null"));
+                    }
+                }
 
-                if (data instanceof PurchaseResponse purchase) {
+                //  그냥 PurchaseResponse 인 경우
+                if (body instanceof PurchaseResponse purchase) {
                     return fillPurchaseDetail(purchase, detail);
-                } else {
-                    log.debug("[HistoryLogAspect] ApiResponse.data가 PurchaseResponse가 아닙니다. type={}",
-                            (data != null ? data.getClass().getName() : "null"));
-                    return null;
+                }
+
+                // 여기까지 왔는데 body가 null이 아니고, 위 타입에도 안 걸리면
+                if (body != null) {
+                    log.debug("[HistoryLogAspect] 지원하지 않는 반환 타입입니다: {}", body.getClass().getName());
                 }
             }
 
-            // 3) 그냥 PurchaseResponse인 경우 (ResponseEntity 안 씌워진 메서드 대비)
-            if (body instanceof PurchaseResponse purchase) {
-                return fillPurchaseDetail(purchase, detail);
+            // ============================
+            // 2) result로 못 찾았으면 → 파라미터(args)에서 fallback
+            //    (PaymentService.confirmTossPayment 같은 void 메서드 지원)
+            // ============================
+            Object[] args = joinPoint.getArgs();
+            for (Object arg : args) {
+
+                // case 1: 이미 PurchaseResponse가 인자로 넘어오는 경우
+                if (arg instanceof PurchaseResponse purchase) {
+                    return fillPurchaseDetail(purchase, detail);
+                }
+
+                // case 2: purchaseId / paymentId 후보 (Long)
+                if (arg instanceof Long id) {
+                    detail.put("purchaseIdGuess", id);
+                    return id;
+                }
+
+                // case 3: orderId 처럼 String 숫자형 파라미터
+                if (arg instanceof String s && s.matches("\\d+")) {
+                    Long id = Long.valueOf(s);
+                    detail.put("orderId", s);
+                    detail.put("purchaseIdGuess", id);  // paymentId일 수도 있으니 Guess
+                    return id;
+                }
             }
 
-            log.debug("[HistoryLogAspect] 지원하지 않는 반환 타입입니다: {}", body.getClass().getName());
+            log.debug("[HistoryLogAspect] 결과/파라미터에서 구매 정보를 추출하지 못했습니다.");
             return null;
 
         } catch (Exception e) {
@@ -142,6 +170,7 @@ public class HistoryLogAspect {
             return null;
         }
     }
+
 
     private Long fillPurchaseDetail(PurchaseResponse purchase, Map<String, Object> detail) {
         detail.put("purchaseId", purchase.getPurchaseId());
@@ -157,6 +186,9 @@ public class HistoryLogAspect {
 
         return purchase.getPurchaseId();
     }
+
+
+
 
 }
 
