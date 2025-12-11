@@ -32,7 +32,7 @@ public class PurchaseController {
 
     @Operation(summary = "상품 주문 생성", description = "상품 정보를 직접 받아 주문을 생성합니다.")
     @PostMapping
-    @LogHistory(actionType = HistoryActionType.PURCHASE_COMPLETED)
+//    @LogHistory(actionType = HistoryActionType.PURCHASE_COMPLETED)
     public ResponseEntity<ApiResponse<PurchaseResponse>> createPurchase(
             @Valid @RequestBody PurchaseRequest request,
             @AuthenticationPrincipal DetailsUser user) {

@@ -6,6 +6,7 @@ import com.twog.shopping.domain.member.service.MemberService;
 import com.twog.shopping.domain.payment.dto.PaymentRequest;
 import com.twog.shopping.domain.payment.dto.PaymentResponse;
 import com.twog.shopping.domain.payment.service.PaymentService;
+import com.twog.shopping.domain.purchase.dto.PurchaseResponse;
 import com.twog.shopping.global.common.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,14 +44,15 @@ public class PaymentController {
 
     @Operation(summary = "토스페이먼츠 결제 승인", description = "토스페이먼츠의 결제 성공 후 콜백을 받아 결제를 최종 승인 처리합니다.")
     @GetMapping("/confirm")
-    public ResponseEntity<ApiResponse<Void>> confirmTossPayment(
+    public ResponseEntity<ApiResponse<PurchaseResponse>> confirmTossPayment(
             @RequestParam String paymentKey,
             @RequestParam String orderId,
             @RequestParam Integer amount) {
 
-        paymentService.confirmTossPayment(paymentKey, orderId, amount);
+        PurchaseResponse purchaseResponse =
+                paymentService.confirmTossPayment(paymentKey, orderId, amount);
 
-        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "결제가 성공적으로 승인되었습니다."));
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "결제가 성공적으로 승인되었습니다.", purchaseResponse));
     }
 
     @Operation(summary = "결제 취소 (환불)", description = "특정 결제를 취소하고 환불을 요청합니다.")
