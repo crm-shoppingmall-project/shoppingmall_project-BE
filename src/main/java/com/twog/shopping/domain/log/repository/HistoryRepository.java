@@ -14,6 +14,14 @@ import java.util.List;
 @Repository
 public interface HistoryRepository extends JpaRepository<History, Long> {
 
+    // 관리자용: 전체 로그 조회 (최신순)
+    @Query("SELECT h FROM History h ORDER BY h.datetime DESC")
+    List<History> findAllOrderByDatetimeDesc();
+
+    // 관리자용: 페이징 로그 조회 (최신순)
+    @Query("SELECT h FROM History h ORDER BY h.datetime DESC")
+    org.springframework.data.domain.Page<History> findAllOrderByDatetimeDesc(org.springframework.data.domain.Pageable pageable);
+
     @Query("""
         SELECT h
         FROM History h
