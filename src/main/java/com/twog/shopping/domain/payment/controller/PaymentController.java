@@ -69,6 +69,20 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "결제가 성공적으로 취소되었습니다."));
     }
 
+    @Operation(summary = "주문 ID로 결제 취소 (환불)", description = "주문 ID를 통해 해당 주문의 결제를 취소하고 환불을 요청합니다.")
+    @PostMapping("/purchase/{purchaseId}/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelPaymentByPurchaseId(
+            @PathVariable Long purchaseId,
+            @RequestBody Map<String, String> requestBody,
+            @AuthenticationPrincipal DetailsUser user) {
+
+        Optional<Member> member = memberService.findByEmail(user.getUsername());
+        String cancelReason = requestBody.getOrDefault("cancelReason", "고객 요청");
+        paymentService.cancelPaymentByPurchaseId(purchaseId, member.get().getMemberId(), cancelReason);
+
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "결제가 성공적으로 취소되었습니다."));
+    }
+
     @Operation(summary = "특정 결제 정보 조회", description = "결제 ID를 통해 특정 결제 내역을 상세 조회합니다.")
     @GetMapping("/{paymentId}")
     public ResponseEntity<ApiResponse<PaymentResponse>> getPaymentById(

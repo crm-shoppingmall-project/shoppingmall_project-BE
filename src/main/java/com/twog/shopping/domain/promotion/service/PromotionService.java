@@ -44,10 +44,14 @@ public class PromotionService {
     // 캠페인 생성
     @Transactional
     public CampaignResponseDto createCampaign(CampaignRequestDto requestDto) {
+        LocalDateTime scheduled = requestDto.getCampaignScheduled() != null 
+                ? requestDto.getCampaignScheduled() 
+                : LocalDateTime.now();
+        
         Campaign campaign = Campaign.builder()
                 .campaignName(requestDto.getCampaignName())
                 .campaignContent(requestDto.getCampaignContent())
-                .campaignScheduled(requestDto.getCampaignScheduled())
+                .campaignScheduled(scheduled)
                 .campaignStatus(CampaignStatus.SCHEDULED)
                 .build();
         Campaign savedCampaign = campaignRepository.save(campaign);
@@ -76,11 +80,16 @@ public class PromotionService {
         return new CampaignResponseDto(campaign);
     }
 
-    // 논리적 삭제
+    // 캠페인 삭제 (실제 삭제)
     @Transactional
     public void deleteCampaign(Long campaignId) {
         Campaign campaign = findCampaignById(campaignId);
-        campaign.deleteLogical();
+        // 관련 타겟 세그먼트 먼저 삭제
+        campaignTargetSegmentRepository.deleteByCampaign_CampaignId(campaignId);
+        // 관련 발송 로그 삭제
+        messageSendLogRepository.deleteByCampaign_CampaignId(campaignId);
+        // 캠페인 삭제
+        campaignRepository.delete(campaign);
     }
 
     // 타겟 세그먼트 추가 로직
